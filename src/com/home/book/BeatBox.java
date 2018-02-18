@@ -5,9 +5,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
 
 public class BeatBox {
+
     private JPanel mainPanel;
     private ArrayList<JCheckBox> checkboxList;
     private Sequencer sequencer;
@@ -16,42 +18,13 @@ public class BeatBox {
     private JFrame theFrame;
 
     private String[] instrumentsNames = {
-             "Bass Drum", "Closed Hi-Hat", "Open Hi-Fat",
-             "Acoustic Snare", "Crash Cymbal", "Hand Clap",
-             "High Tom", "Hi Bongo", "Maracas", "Whistle",
-             "Low Conga", "Cowbell", "Vibraslap", "Low-mind Tom",
-             "High Agogo", "Open Hi Conga"};
+            "Bass Drum", "Closed Hi-Hat", "Open Hi-Fat",
+            "Acoustic Snare", "Crash Cymbal", "Hand Clap",
+            "High Tom", "Hi Bongo", "Maracas", "Whistle",
+            "Low Conga", "Cowbell", "Vibraslap", "Low-mind Tom",
+            "High Agogo", "Open Hi Conga"};
     private int[] instruments = {35, 42, 46, 38, 49, 39, 50, 60, 70, 72, 64, 56, 58, 47, 67, 63};
-
-    private class MyStartListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            buildTrackAndStart();
-        }
-    }
-
-    private class MyStopListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            sequencer.stop();
-        }
-    }
-
-    private class MyUpTempoListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            float tempoFactor = sequencer.getTempoFactor();
-            sequencer.setTempoFactor(tempoFactor * 1.03f);
-        }
-    }
-
-    private class MyDownTempoListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            float tempoFactor = sequencer.getTempoFactor();
-            sequencer.setTempoFactor(tempoFactor * 0.97f);
-        }
-    }
+    private File file = new File("schema.bin");
 
     public static void main(String[] args) {
         new BeatBox().buildGUI();
@@ -81,6 +54,14 @@ public class BeatBox {
         JButton downTempo = new JButton("Tempo Down");
         downTempo.addActionListener(new MyDownTempoListener());
         buttonBox.add(downTempo);
+
+        JButton save = new JButton("Save");
+        save.addActionListener(new MySendListener());
+        buttonBox.add(save);
+
+        JButton load = new JButton("Load");
+        load.addActionListener(new MyReadInListener());
+        buttonBox.add(load);
 
         Box nameBox = new Box(BoxLayout.Y_AXIS);
         for (int i = 0; i < 16; i++) {
@@ -151,7 +132,7 @@ public class BeatBox {
 
     private MidiEvent makeEvent(int command, int channel, int one, int two, int tick) {
         MidiEvent event = null;
-        try{
+        try {
             ShortMessage message = new ShortMessage();
             message.setMessage(command, channel, one, two);
             event = new MidiEvent(message, tick);
@@ -168,6 +149,78 @@ public class BeatBox {
                 track.add(makeEvent(144, 9, key, 100, i));
                 track.add(makeEvent(128, 9, key, 100, i + 1));
             }
+        }
+    }
+
+    private class MyStartListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            buildTrackAndStart();
+        }
+    }
+
+    private class MyStopListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            sequencer.stop();
+        }
+    }
+
+    private class MyUpTempoListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            float tempoFactor = sequencer.getTempoFactor();
+            sequencer.setTempoFactor(tempoFactor * 1.03f);
+        }
+    }
+
+    private class MyDownTempoListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            float tempoFactor = sequencer.getTempoFactor();
+            sequencer.setTempoFactor(tempoFactor * 0.97f);
+        }
+    }
+
+    private class MySendListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            boolean[] checkboxState = new boolean[256];
+            for (int i = 0; i < 256; i++) {
+                JCheckBox checkBox = checkboxList.get(i);
+                if (checkBox.isSelected()) {
+                    checkboxState[i] = true;
+                }
+            }
+            try {
+                ObjectOutputStream objectStream = new ObjectOutputStream(new FileOutputStream(file));
+                objectStream.writeObject(checkboxState);
+                objectStream.close();
+            } catch (Exception error) {
+                error.printStackTrace();
+            }
+        }
+    }
+
+    private class MyReadInListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            boolean[] checkboxState = null;
+            try {
+                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file));
+                checkboxState = (boolean[]) inputStream.readObject();
+                inputStream.close();
+            } catch (Exception error) {
+                error.printStackTrace();
+            }
+
+            for (int i = 0; i < 256; i++) {
+                JCheckBox checkBox = checkboxList.get(i);
+                checkBox.setSelected(checkboxState[i]);
+            }
+
+            sequencer.stop();
+            buildTrackAndStart();
         }
     }
 }
