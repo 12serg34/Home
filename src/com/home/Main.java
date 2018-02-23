@@ -5,6 +5,7 @@ import java.util.HashMap;
 public class Main {
 
     static int solve(String[] input) {
+
         int n = input.length;
         HashMap<Character, Integer> countSameWhites = new HashMap<>();
         HashMap<Character, Integer> countSameBlacks = new HashMap<>();
