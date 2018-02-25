@@ -44,7 +44,7 @@ public class BeatBox {
 
 
     public static void main(String[] args) {
-        new BeatBox().startUp(args[0]);
+        new BeatBox().startUp(args.length > 0 ? args[0] : "undefined");
     }
 
     private void startUp(String name) {
@@ -151,7 +151,6 @@ public class BeatBox {
                 trackList.add(checkBox.isSelected() ? instruments[i] : null);
             }
             makeTracks(trackList);
-//            track.add(makeEvent(176, 1, 127, 0, 16));
         }
         track.add(makeEvent(192, 9, 1, 0, 15));
         try {
