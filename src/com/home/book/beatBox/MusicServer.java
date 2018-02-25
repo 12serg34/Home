@@ -9,36 +9,54 @@ import java.util.Iterator;
 
 public class MusicServer {
     private ArrayList<ObjectOutputStream> clientOutputStreams;
+    private ServerSocket serverSocket;
 
     public static void main(String[] args) {
-        new MusicServer().go();
+        new MusicServer().run();
     }
 
-    private void go() {
+    private void run() {
         clientOutputStreams = new ArrayList<>();
         try {
-            ServerSocket serverSocket = new ServerSocket(4242);
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                clientOutputStreams.add(new ObjectOutputStream(clientSocket.getOutputStream()));
-                new Thread(new ClientHandler(clientSocket)).start();
-                System.out.println("got a connection");
-            }
+            serverSocket = new ServerSocket(4242);
+            waitNewClient();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error create socket or wait client");
+        }
+    }
+
+    private void waitNewClient(){
+        System.out.println("Waiting a new client...");
+        try {
+            Socket clientSocket = serverSocket.accept();
+            clientOutputStreams.add(new ObjectOutputStream(clientSocket.getOutputStream()));
+            new Thread(new ClientHandler(clientSocket)).start();
+            System.out.println("got new connection");
+            waitNewClient();
+        }catch (Exception e){
+            System.out.println("Error waiting client");
+        }
+    }
+
+    private void tellEveryOne(Object one, Object two) {
+        for (ObjectOutputStream clientOutputStream : clientOutputStreams) {
+            try {
+                clientOutputStream.writeObject(one);
+                clientOutputStream.writeObject(two);
+            } catch (Exception e) {
+                System.out.println("Error broadcast sending");
+            }
         }
     }
 
     public class ClientHandler implements Runnable {
         ObjectInputStream in;
-        Socket clientSocket;
 
-        public ClientHandler(Socket socket) {
+        private ClientHandler(Socket socket) {
             try {
-                clientSocket = socket;
-                in = new ObjectInputStream(clientSocket.getInputStream());
+                in = new ObjectInputStream(socket.getInputStream());
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println("Error getting input stream");
             }
         }
 
@@ -51,20 +69,7 @@ public class MusicServer {
                     tellEveryOne(o1, o2);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void tellEveryOne(Object one, Object two) {
-        Iterator<ObjectOutputStream> iterator = clientOutputStreams.iterator();
-        while (iterator.hasNext()) {
-            try {
-                ObjectOutputStream out = iterator.next();
-                out.writeObject(one);
-                out.writeObject(two);
-            } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println("Error reading input");
             }
         }
     }
