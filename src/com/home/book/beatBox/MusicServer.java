@@ -58,12 +58,12 @@ public class MusicServer {
 
     private void tellEveryOne(Object one, Object two) {
         Iterator<ObjectOutputStream> iterator = clientOutputStreams.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             try {
                 ObjectOutputStream out = iterator.next();
                 out.writeObject(one);
                 out.writeObject(two);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

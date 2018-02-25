@@ -49,7 +49,7 @@ public class BeatBox {
 
     private void startUp(String name) {
         userName = name;
-        try{
+        try {
             Socket socket = new Socket("127.0.0.1", 4242);
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
@@ -244,10 +244,10 @@ public class BeatBox {
 
         @Override
         public void run() {
-            try{
-                while ((obj = in.readObject()) != null){
+            try {
+                while ((obj = in.readObject()) != null) {
                     System.out.println("got an object from server\n" + obj.getClass());
-                    String nameToShow = (String)obj;
+                    String nameToShow = (String) obj;
                     checkboxState = (boolean[]) in.readObject();
                     otherSeqMap.put(nameToShow, checkboxState);
                     listVector.add(nameToShow);
@@ -262,9 +262,9 @@ public class BeatBox {
     private class MyListSelectionListener implements javax.swing.event.ListSelectionListener {
         @Override
         public void valueChanged(ListSelectionEvent e) {
-            if (e.getValueIsAdjusting()){
+            if (e.getValueIsAdjusting()) {
                 String selected = (String) incomingList.getSelectedValue();
-                if(selected != null){
+                if (selected != null) {
                     boolean[] selectedState = (boolean[]) otherSeqMap.get(selected);
                     changeSequence(selectedState);
                     sequencer.stop();
