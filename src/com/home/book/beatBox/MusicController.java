@@ -1,8 +1,6 @@
 package com.home.book.beatBox;
 
 import javax.sound.midi.*;
-import javax.swing.*;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,7 +32,7 @@ public class MusicController {
     }
 
     public String[] getInstrumentsNames() {
-        return (String[]) instruments.keySet().toArray();
+        return instruments.keySet().toArray(new String[1]);
     }
 
     public void initMIDI() {
