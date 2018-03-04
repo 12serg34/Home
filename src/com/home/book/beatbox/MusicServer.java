@@ -17,7 +17,7 @@ public class MusicServer {
     private void run() {
         clientOutputStreams = new ArrayList<>();
         try {
-            serverSocket = new ServerSocket(ApplicationContext.SERVER_PORT);
+            serverSocket = new ServerSocket(ApplicationContext.getServerPort());
             waitNewClient();
         } catch (Exception e) {
             System.out.println("Error create socket or wait client");

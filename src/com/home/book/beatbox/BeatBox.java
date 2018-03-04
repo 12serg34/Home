@@ -22,7 +22,6 @@ public class BeatBox {
     private ObjectOutputStream out;
 
     private int nextNum;
-    private String serverAddress;
     private String userName;
     private Vector<String> listVector;
     private HashMap<String, boolean[]> otherSeqMap;
@@ -32,7 +31,6 @@ public class BeatBox {
     public static void main(String[] args) {
         BeatBox beatBox = new BeatBox();
         beatBox.userName = args.length > 0 ? args[0] : "undefined";
-        beatBox.serverAddress = args.length > 1? args[1] : ApplicationContext.SERVER_ADDRESS;
         beatBox.init();
     }
 
@@ -48,7 +46,7 @@ public class BeatBox {
 
     private void connectToServer() {
         try {
-            Socket socket = new Socket(serverAddress, ApplicationContext.SERVER_PORT);
+            Socket socket = new Socket(ApplicationContext.getServerAddress(), ApplicationContext.getServerPort());
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
             new Thread(new RemoteReader()).start();
