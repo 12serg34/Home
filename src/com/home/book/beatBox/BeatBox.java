@@ -14,7 +14,6 @@ import java.util.Random;
 import java.util.Vector;
 
 public class BeatBox {
-
     private JTextField messageField;
     private JList<String> incomingList;
     private ArrayList<JCheckBox> checkboxList;
@@ -23,6 +22,7 @@ public class BeatBox {
     private ObjectOutputStream out;
 
     private int nextNum;
+    private String serverAddress;
     private String userName;
     private Vector<String> listVector;
     private HashMap<String, boolean[]> otherSeqMap;
@@ -30,11 +30,13 @@ public class BeatBox {
 
 
     public static void main(String[] args) {
-        new BeatBox().init(args.length > 0 ? args[0] : "undefined");
+        BeatBox beatBox = new BeatBox();
+        beatBox.userName = args.length > 0 ? args[0] : "undefined";
+        beatBox.serverAddress = args.length > 1? args[1] : ApplicationContext.SERVER_ADDRESS;
+        beatBox.init();
     }
 
-    private void init(String name) {
-        userName = name;
+    private void init() {
         listVector = new Vector<>();
         otherSeqMap = new HashMap<>();
         music = new MusicController();
@@ -46,7 +48,7 @@ public class BeatBox {
 
     private void connectToServer() {
         try {
-            Socket socket = new Socket(ApplicationContext.SERVER_ADDRESS, ApplicationContext.SERVER_PORT);
+            Socket socket = new Socket(serverAddress, ApplicationContext.SERVER_PORT);
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
             new Thread(new RemoteReader()).start();
