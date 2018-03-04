@@ -5,7 +5,6 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class MusicServer {
     private ArrayList<ObjectOutputStream> clientOutputStreams;
@@ -18,7 +17,7 @@ public class MusicServer {
     private void run() {
         clientOutputStreams = new ArrayList<>();
         try {
-            serverSocket = new ServerSocket(4242);
+            serverSocket = new ServerSocket(ApplicationContext.SERVER_PORT);
             waitNewClient();
         } catch (Exception e) {
             System.out.println("Error create socket or wait client");
