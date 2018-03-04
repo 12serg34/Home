@@ -1,4 +1,4 @@
-package com.home.book.beatBox;
+package com.home.book.beatbox;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

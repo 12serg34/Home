@@ -1,4 +1,4 @@
-package com.home.book.beatBox;
+package com.home.book.beatbox;
 
 public class ApplicationContext {
 
