@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Vector;
 
 public class BeatBox {
@@ -69,6 +70,9 @@ public class BeatBox {
         buttonBox.add(createButton("Tempo Down", new MyDownTempoListener()));
         buttonBox.add(createButton("sendIt", new MySendListener()));
         buttonBox.add(messageField = new JTextField("write your message here"));
+        buttonBox.add(createButton("random", e -> {
+            generateRandomTrackAndPlay();
+        }));
 
         incomingList = new JList<>();
         incomingList.addListSelectionListener(new MyListSelectionListener());
@@ -118,6 +122,22 @@ public class BeatBox {
         for (int i = 0; i < instruments.length; i++) {
             for (int j = 0; j < rhythm.length; j++) {
                 rhythm[j] = checkboxList.get(16 * i + j).isSelected();
+            }
+            music.addToTrack(instruments[i], rhythm);
+        }
+        music.play();
+    }
+
+    private void generateRandomTrackAndPlay() {
+        music.resetTrack();
+        String[] instruments = music.getInstrumentsNames();
+        boolean[] rhythm = new boolean[16];
+        Random generator = new Random();
+        for (int i = 0; i < instruments.length; i++) {
+            for (int j = 0; j < rhythm.length; j++) {
+                boolean value = generator.nextInt(10) == 2;
+                rhythm[j] = value;
+                checkboxList.get(16 * i + j).setSelected(value);
             }
             music.addToTrack(instruments[i], rhythm);
         }
