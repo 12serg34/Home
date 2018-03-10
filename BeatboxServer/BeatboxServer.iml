@@ -7,6 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="Home" />
+    <orderEntry type="module" module-name="BeatBoxCommon" />
   </component>
 </module>
