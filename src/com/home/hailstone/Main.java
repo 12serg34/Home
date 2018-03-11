@@ -9,7 +9,21 @@ public class Main {
     }
 
     private void run(){
-        int value = 27;
+        printStep(0b1111);
+        printStep(0b10111);
+        printStep(0b100111);
+        printStep(0b1000111);
+        printStep(0b10000111);
+        printStep(0b100000111);
+    }
+
+    private void printStep(int value){
+        printValue(value);
+        printValue(step(value));
+        System.out.println();
+    }
+
+    private void printHistory(int value){
         printValue(value);
         while (value != 1){
             printValue(value = step(value));
