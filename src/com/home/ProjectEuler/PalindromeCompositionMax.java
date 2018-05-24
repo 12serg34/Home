@@ -23,7 +23,7 @@ public class PalindromeCompositionMax {
     }
 
     private void test(int n) {
-        int palindrome = getPalindrome(n);
+        int palindrome = getPalindrome(n - 1);
         while (!checkCompose(palindrome)) {
             palindrome = getPalindrome(palindrome - 1);
         }
@@ -66,8 +66,9 @@ public class PalindromeCompositionMax {
         for (int number = middle; number > 99; number--) {
             if (x % number == 0) {
                 int y = x / number;
-                compositely = y > 99 && y < 1000;
-                break;
+                if (compositely = (y > 99 && y < 1000)){
+                    break;
+                }
             }
         }
         return compositely;
