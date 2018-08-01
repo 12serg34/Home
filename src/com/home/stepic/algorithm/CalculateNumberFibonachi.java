@@ -5,14 +5,14 @@ import java.util.Scanner;
 /**
  * Created by Sergey on 10.02.2017.
  */
-public class _2_CalculateNumberFibonachiMod10 {
+public class CalculateNumberFibonachi {
     public static void main(String[] args){
         Scanner inputConsole = new Scanner(System.in);
         int n = inputConsole.nextInt();
-        System.out.println(getLastNumberFibonaciMod10(n));
+        System.out.println(getNumberFibonaci(n));
     }
 
-    static int getLastNumberFibonaciMod10(int n) {
+    static int getNumberFibonaci(int n) {
         if (n <= 1) {
             return n;
         } else {
@@ -21,7 +21,7 @@ public class _2_CalculateNumberFibonachiMod10 {
             int bufer = 0;
             for (int i = 1; i < n; i++) {
                 bufer = now;
-                now = (now + last) % 10;
+                now += last;
                 last = bufer;
             }
             return now;

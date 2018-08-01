@@ -6,10 +6,10 @@ import java.util.Scanner;
 /**
  * Created by Sergey on 13.02.2017.
  */
-public class _5_PointsOver {
+public class PointsOver {
 
     public static void main(String[] args) {
-        new _5_PointsOver().run();
+        new PointsOver().run();
     }
 
     int n;

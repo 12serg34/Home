@@ -5,7 +5,7 @@ import java.util.Scanner;
 /**
  * Created by Sergey on 11.02.2017.
  */
-public class _4_EuclidGCD {
+public class EuclidGCD {
     public static void main(String[] args) {
         Scanner consoleInput = new Scanner(System.in);
         int a = consoleInput.nextInt();

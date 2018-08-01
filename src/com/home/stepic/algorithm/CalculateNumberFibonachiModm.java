@@ -5,7 +5,7 @@ import java.util.Scanner;
 /**
  * Created by Sergey on 10.02.2017.
  */
-public class _3_CalculateNumberFibonachiModm {
+public class CalculateNumberFibonachiModm {
     public static void main(String[] args) {
         Scanner inputConsole = new Scanner(System.in);
         long n = inputConsole.nextLong();
