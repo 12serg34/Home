@@ -27,18 +27,6 @@ public class HighlyDivisibleTriangularNumber {
     }
 
     private int getAmountOf(int n){
-        if (n == 1){
-            return 1;
-        }
-        int factor = n;
-        int limit = (int)(Math.sqrt(n)) + 1;
-        for (int i = 2; i < limit; i++){
-            if (n % i == 0){
-                factor = i;
-                break;
-            }
-        }
-        factor = n / factor;
-        return getAmountOf(factor) + 1;
+        return 0;
     }
 }
