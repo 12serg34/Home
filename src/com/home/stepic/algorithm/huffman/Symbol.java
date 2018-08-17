@@ -1,45 +1,51 @@
 package com.home.stepic.algorithm.huffman;
 
-public class Symbol {
+public class Symbol implements Comparable<Symbol>{
+    public static final String LEFT_CHAR = "0";
+    public static final String RIGHT_CHAR = "1";
+
     private char value;
     private int frequency;
-    private Symbol left, right, parent;
+    private Symbol left, right;
+    private String code;
 
     public Symbol(char value, int frequency) {
         this.value = value;
         this.frequency = frequency;
     }
 
-    public Symbol(Symbol left, Symbol right, Symbol parent) {
+    public Symbol(Symbol left, Symbol right) {
         this.left = left;
         this.right = right;
-        left.parent = right.parent = this;
-    }
-
-    public Symbol(Symbol left, Symbol right){
-
-    }
-
-    public void setValue(char value) {
-        this.value = value;
-    }
-
-    public int getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
+        this.frequency = left.frequency + right.frequency;
+        this.code = "";
     }
 
     public void incrementFrequency(){
         frequency++;
     }
 
-    public char getValue() {
+    public void buildCode(){
+        if (left != null){
+            left.code = code + LEFT_CHAR;
+            left.buildCode();
+        }
+        if (right != null){
+            right.code = code + RIGHT_CHAR;
+            right.buildCode();
+        }
+    }
 
+    public char getValue() {
         return value;
     }
 
+    public String getCode() {
+        return code;
+    }
 
+    @Override
+    public int compareTo(Symbol o) {
+        return Integer.compare(this.frequency, o.frequency);
+    }
 }
