@@ -1,5 +1,6 @@
 package com.home.stepic.algorithm.huffman;
 
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class HuffmanDecoding {
@@ -12,12 +13,28 @@ public class HuffmanDecoding {
         Scanner inputConsole = new Scanner(System.in);
         int amountSymbols = inputConsole.nextInt();
         int length = inputConsole.nextInt();
-        Symbol root = new Symbol(Character.MAX_VALUE, Integer.MAX_VALUE);
+        inputConsole.nextLine();
+
+        Symbol root = Symbol.createEmpty();
         for (int i = 0; i < amountSymbols; i++) {
             String[] parts = inputConsole.nextLine().split(":");
-            root.AddSymbol(parts[0].charAt(0), parts[1].trim());
+            root.addSymbol(parts[0].charAt(0), stringToListCharacter(parts[1].trim()));
         }
-        String code = inputConsole.nextLine();
-        System.out.println(code);
+
+        LinkedList<Character> code = stringToListCharacter(inputConsole.nextLine());
+        StringBuilder decodedString = new StringBuilder();
+        while (!code.isEmpty()){
+            decodedString = decodedString.append(root.decode(code));
+        }
+        System.out.println(decodedString);
+    }
+
+    private LinkedList<Character> stringToListCharacter(String s){
+        char[] chars = s.toCharArray();
+        LinkedList<Character> list = new LinkedList<>();
+        for(char c: chars){
+            list.add(c);
+        }
+        return list;
     }
 }

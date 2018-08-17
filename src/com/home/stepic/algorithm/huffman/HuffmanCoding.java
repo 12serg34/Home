@@ -26,16 +26,14 @@ public class HuffmanCoding {
         Collection<Symbol> symbols = symbolsMap.values();
         Queue<Symbol> queue = new PriorityQueue<>(symbols);
         if (symbols.size() == 1){
-            queue.add(new Symbol(Character.MAX_VALUE, Integer.MAX_VALUE));
+            queue.add(Symbol.createEmpty());
         }
         while (queue.size() > 1) {
             Symbol a = queue.remove();
             Symbol b = queue.remove();
             queue.add(new Symbol(a, b));
         }
-
-        Symbol root = queue.remove();
-        root.buildCode();
+        queue.remove().buildCode();
 
         Map<Character, String> codes = new HashMap<>(symbols.size());
         for (Symbol symbol : symbols) {
