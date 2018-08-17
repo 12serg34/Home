@@ -2,10 +2,10 @@ package com.home.stepic.algorithm.huffman;
 
 import java.util.*;
 
-public class Huffman {
+public class HuffmanCoding {
 
     public static void main(String[] args) {
-        new Huffman().run();
+        new HuffmanCoding().run();
     }
 
     public void run() {
