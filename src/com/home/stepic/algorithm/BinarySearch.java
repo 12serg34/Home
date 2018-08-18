@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
-class Main {
+class BinarySearch {
     public static void main(String[] args) {
-        new Main().run();
+        new BinarySearch().run();
     }
 
     private void run() {
