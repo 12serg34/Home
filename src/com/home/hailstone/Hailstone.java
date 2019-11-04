@@ -1,14 +1,29 @@
 package com.home.hailstone;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Hailstone {
-    public static void main(String[] args) {
-        new Hailstone().run();
+class Hailstone {
+
+    @Test
+    void test1() {
+        IntStream.iterate(2, x -> 3 * x)
+                .limit(10)
+                .forEach(x -> System.out.print(x + ", "));
+        System.out.println();
+        IntStream.iterate(4, x -> x * x *x)
+                .limit(5)
+                .forEach(x -> System.out.print(x + ", "));
     }
 
-    private void run() {
+    @Test
+    void test2() {
         int[] ints = IntStream.iterate(
                 7,
                 x -> cut(3 * x + 1))
@@ -27,6 +42,41 @@ public class Hailstone {
                 .toArray();
         System.out.println(Arrays.toString(ints2));
         System.out.println(ints2.length);
+    }
+
+    @Test
+    void test3() {
+        int limit = 15;
+        Set<Item> items = new TreeSet<>(Comparator.comparing(item -> item.value));
+        for (int p1 = 0; p1 < limit; p1++) {
+            for (int p2 = 0; p2 < limit; p2++) {
+                Item item = new Item();
+                item.p1 = p1;
+                item.p2 = p2;
+                calculateValue2(item);
+                items.add(item);
+            }
+        }
+        System.out.println(items);
+    }
+
+    @Test
+    void test4(String[] args) {
+        IntStream.range(0, 100)
+                .map(v -> (int) Math.sqrt(v))
+                .boxed()
+                .collect(Collectors.groupingBy(Integer::intValue))
+                .forEach((k, v) -> System.out.println(v.size()));
+    }
+
+    @Test
+    void test5() {
+        IntStream.range(0, 100)
+                .map(v -> {
+                    int n = (int) ((Math.sqrt(1 + 8 * v) - 1) / 2);
+                    return v - n * (n + 1) / 2;
+                })
+                .forEach(v -> System.out.print(v + " "));
     }
 
     private int cut(int x) {
@@ -66,4 +116,22 @@ public class Hailstone {
         }
         return intStream.flatMap(x -> step(x, limit, level - 1));
     }
+
+    class Item {
+        int p1;
+        int p2;
+        int value;
+
+        @Override
+        public String toString() {
+            return "(" + p1 + ", " + p2 + ")";
+        }
+    }
+
+    private void calculateValue2(Item item) {
+        int a = 1 << item.p1;
+        int b = 1 << item.p2;
+        item.value = a * b + 3 * b + 9;
+    }
 }
+
