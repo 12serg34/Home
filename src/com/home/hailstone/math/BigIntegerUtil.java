@@ -1,5 +1,6 @@
 package com.home.hailstone.math;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -10,51 +11,59 @@ import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.TestUtils.testFunction;
 import static com.home.hailstone.math.TestUtils.testOrdering;
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
 
-public class Util {
+public class BigIntegerUtil {
+    private static final BigInteger TWO = BigInteger.valueOf(2);
+    public static final BigInteger THREE = BigInteger.valueOf(3);
 
     public static int gamma(int x) {
         return x % 3 == 2 ? 1 : 0;
     }
 
-    public static int cycle(int x, int... cycle) {
-        return cycle[x % cycle.length];
+    public static int cycle(BigInteger x, int... cycle) {
+        return cycle[x.mod(BigInteger.valueOf(cycle.length)).intValue()];
     }
 
-    public static int mod2(int x) {
-        return x % 2;
+    private static BigInteger mod2(BigInteger x) {
+        return x.mod(TWO);
     }
 
-    public static int invertMod2(int x) {
-        return 1 - mod2(x);
+    public static BigInteger invertMod2(BigInteger x) {
+        return ONE.subtract(mod2(x));
     }
 
-    public static int mod3(int x) {
-        return x % 3;
+    private static BigInteger mod3(BigInteger x) {
+        return x.mod(THREE);
     }
 
-    public static int forward1(int x) {
-        return 2 * x + 1;
+    public static BigInteger forward1(BigInteger x) {
+        return TWO.multiply(x).add(ONE);
     }
 
-    public static int reverse1(int x) {
-        assert mod2(x) != 0;
-        return (x - 1) / 2;
+    public static BigInteger reverse1(BigInteger x) {
+        assert !mod2(x).equals(ZERO);
+        return x.subtract(ONE).divide(TWO);
     }
 
-    public static int forward2(int x) {
-        return (3 * x + x % 2) / 2;
+    public static BigInteger forward2(BigInteger x) {
+        return (x.multiply(THREE)
+                .add(mod2(x))
+        ).divide(TWO);
     }
 
-    public static int reverse2(int x) {
+    public static BigInteger reverse2(BigInteger x) {
+//        assert x > -1;
+//        assert mod3(x) != 1;
+        return x.multiply(BigInteger.valueOf(4))
+                .subtract(mod3(x))
+                .divide(BigInteger.valueOf(6));
+    }
+
+    public static BigInteger powOf2(int x) {
         assert x > -1;
-        assert mod3(x) != 1;
-        return (4 * x - mod3(x)) / 6;
-    }
-
-    public static int powOf2(int x) {
-        assert x > -1;
-        return 1 << x;
+        return TWO.pow(x);
     }
 
     public static IntFunction<Integer> max(List<IntFunction<Integer>> functions) {
@@ -109,12 +118,5 @@ public class Util {
             splitIndex.get(i % numberToSplit).add(index[i]);
         }
         return splitIndex;
-    }
-
-    public static void splitAndPrint(int[] index, int numberToSplit) {
-        List<List<Integer>> splitIndex = split(index, numberToSplit);
-        for (int i = 0; i < numberToSplit; i++) {
-            System.out.println("splitIndex" + i + ": " + splitIndex.get(i));
-        }
     }
 }

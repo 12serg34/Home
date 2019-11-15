@@ -1,11 +1,18 @@
 package com.home.hailstone.expirement;
 
+import com.home.hailstone.math.Util;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
-import static com.home.hailstone.math.Util.*;
+import static com.home.hailstone.math.BigIntegerUtil.*;
+import static java.math.BigInteger.ZERO;
+import static java.util.stream.Collectors.toList;
 
 /*
 нужно найти формулу для ограничения первого уровня:
@@ -42,65 +49,93 @@ public class MergeFirstsTwoLevels {
 
     private void run() {
         System.out.println("Hello, it's merge of two firsts levels");
-        int limit = 1000;
-        List<Item> collect = IntStream.range(0, 4)
-                .mapToObj(i1 -> new Item(i1, -1, x(1, i1)))
-                .flatMap(l1 -> IntStream.range(0, 4)
-                        .mapToObj(i2 -> new Item(l1.i1, i2, x(l1.value, i2))))
-                .sorted(Comparator.comparingInt(it1 -> it1.value))
-                .collect(Collectors.toList());
-        System.out.println(collect);
-        System.out.println(collect.stream()
-                .map(it -> it.i1)
-                .collect(Collectors.toList()));
-        System.out.println(collect.stream()
-                .map(it -> it.i2)
-                .collect(Collectors.toList()));
-        System.out.println(collect.stream()
-                .map(it -> it.value)
-                .collect(Collectors.toList()));
+        int limit = 100000;
+        System.out.println("Limit: " + limit);
+        int[] index = IntStream.range(0, 10).toArray();
+        System.out.println("index: " + Arrays.toString(index));
+
+        List<Item> firstLevel = Arrays.stream(index)
+                .mapToObj(k -> new Item(k, 0, x(ZERO, k)))
+                .collect(toList());
+        System.out.println("first level: " + firstLevel);
+
+        List<BigInteger> originalFirstLevel = firstLevel.stream()
+                .map(item -> forward1(forward2(item.value)))
+                .collect(toList());
+        System.out.println("original first level: " + originalFirstLevel);
+
+        List<Item> secondLevel = new ArrayList<>();
+        for (int i = 0; i < firstLevel.size(); i++) {
+            Item itemFromLevel1 = firstLevel.get(i);
+            List<Item> branch = Arrays.stream(index)
+                    .mapToObj(k -> new Item(itemFromLevel1.i1, k, x(itemFromLevel1.value, k)))
+                    .collect(toList());
+            System.out.println("branch of second level number " + i + " from " + itemFromLevel1.value + ": "
+                    + branch);
+            secondLevel.addAll(branch);
+        }
+        List<Item> mergedLevels = secondLevel.stream()
+                .filter(item ->
+                        item.value.compareTo(BigInteger.valueOf(limit)) < 0)
+                .sorted(Comparator.comparing(Item::getValue))
+                .collect(toList());
+        System.out.println("merged levels: " + mergedLevels);
+        int[] indexesOfFirstLevel = mergedLevels.stream()
+                .mapToInt(Item::getI1)
+                .toArray();
+        System.out.println("indexes of first level: " + Arrays.toString(indexesOfFirstLevel));
+        Util.splitAndPrint(indexesOfFirstLevel, 6);
+        List<Integer> indexesOfSecondLevel = mergedLevels.stream()
+                .map(Item::getI2)
+                .collect(toList());
+        System.out.println("indexes of second level: " + indexesOfSecondLevel);
     }
 
-//    private List<Integer> getFirstLevel(int limit
-
-    private int x(int y, int k) {
-        return reverse2(reverse1((forward1(forward2(y)) * powOf2(i(y, k)) - 1)
-                / 3));
+    @SuppressWarnings("SuspiciousNameCombination")
+    private BigInteger x(BigInteger y, int k) {
+        return reverse2(reverse1(
+                forward1(forward2(y)).multiply(powOf2(i(y, k))).subtract(BigInteger.ONE).divide(THREE)
+        ));
     }
 
-    private int i(int y, int k) {
-        return 2 * j(y, k) + invertMod2(y % 2) + 1;
+    @SuppressWarnings("SuspiciousNameCombination")
+    private int i(BigInteger y, int k) {
+        return merge(k, m -> 6 * m + cycle(y, 2, 3, 4, 1, 2, 1),
+                m -> 6 * m + cycle(y, 4, 5, 6, 3, 6, 5));
     }
 
-    private int j(int y, int k) {
-        return 3 * (k / 2) + theta(e1(y) + 2, k);
-    }
-
-    private int e1(int y) {
-        return reverse1(
-                (forward1(forward2(y)) * powOf2(invertMod2(y % 2)) - 1)
-                        / 3
-        );
-    }
-
-    private int theta(int i, int j) {
-        return cycle(j, cycle(i, 1, 0, 0), cycle(i, 2, 2, 1));
+    @SafeVarargs
+    private final int merge(int x, IntFunction<Integer>... functions) {
+        int size = functions.length;
+        return functions[x % size].apply(x / size);
     }
 
     static class Item {
         int i1;
         int i2;
-        int value;
+        BigInteger value;
 
-        public Item(int i1, int i2, int value) {
+        Item(int i1, int i2, BigInteger value) {
             this.i1 = i1;
             this.i2 = i2;
             this.value = value;
         }
 
+        public BigInteger getValue() {
+            return value;
+        }
+
+        public int getI1() {
+            return i1;
+        }
+
+        public int getI2() {
+            return i2;
+        }
+
         @Override
         public String toString() {
-            return String.format("i1 = %1d, i2 = %2d, v = %3d", i1, i2, value);
+            return value.toString();
         }
     }
 }
