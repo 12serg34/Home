@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
+import static com.home.hailstone.math.Util.max;
+
 public class FindLimitF12y2iy0 {
     public static void main(String[] args) {
         new FindLimitF12y2iy0().run();
@@ -38,15 +40,5 @@ public class FindLimitF12y2iy0 {
      */
     private int limitOfLineFunction(int a, int b, int l) {
         return (l - b) / a;
-    }
-
-    private IntFunction<Integer> max(List<IntFunction<Integer>> functions) {
-        return x -> {
-            int maxValue = Integer.MIN_VALUE;
-            for (IntFunction<Integer> function : functions) {
-                maxValue = Math.max(maxValue, function.apply(x));
-            }
-            return maxValue;
-        };
     }
 }
