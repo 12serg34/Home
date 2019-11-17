@@ -3,10 +3,7 @@ package com.home.hailstone.expirement;
 import com.home.hailstone.math.Util;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
@@ -49,34 +46,47 @@ public class MergeFirstsTwoLevels {
 
     private void run() {
         System.out.println("Hello, it's merge of two firsts levels");
-        int limit = 100000;
+        BigInteger limit = BigInteger.valueOf(1_000_000_000);
         System.out.println("Limit: " + limit);
-        int[] index = IntStream.range(0, 10).toArray();
-        System.out.println("index: " + Arrays.toString(index));
 
-        List<Item> firstLevel = Arrays.stream(index)
-                .mapToObj(k -> new Item(k, 0, x(ZERO, k)))
-                .collect(toList());
+        int k = 0;
+        Item item = new Item(0, 0, x(ZERO, 0));
+        List<Item> firstLevel = new ArrayList<>();
+        while (item.value.compareTo(limit) < 0) {
+            firstLevel.add(item);
+            item = new Item(++k, 0, x(ZERO, k));
+        }
+        item = new Item(++k, 0, x(ZERO, k));
+        if (item.value.compareTo(limit) < 0) {
+            firstLevel.add(item);
+        }
         System.out.println("first level: " + firstLevel);
 
         List<BigInteger> originalFirstLevel = firstLevel.stream()
-                .map(item -> forward1(forward2(item.value)))
+                .map(it -> forward1(forward2(it.value)))
                 .collect(toList());
         System.out.println("original first level: " + originalFirstLevel);
+
+        List<BigInteger> basesFromFirstLevel = IntStream.range(0, 100)
+                .mapToObj(i -> x(x(ZERO, i), 0))
+                .collect(toList());
+        System.out.println("bases from first level: " + basesFromFirstLevel);
 
         List<Item> secondLevel = new ArrayList<>();
         for (int i = 0; i < firstLevel.size(); i++) {
             Item itemFromLevel1 = firstLevel.get(i);
-            List<Item> branch = Arrays.stream(index)
-                    .mapToObj(k -> new Item(itemFromLevel1.i1, k, x(itemFromLevel1.value, k)))
-                    .collect(toList());
+            k = 0;
+            item = new Item(i, 0, x(itemFromLevel1.value, 0));
+            List<Item> branch = new ArrayList<>();
+            while (item.value.compareTo(limit) < 0) {
+                branch.add(item);
+                item = new Item(i, ++k, x(itemFromLevel1.value, k));
+            }
             System.out.println("branch of second level number " + i + " from " + itemFromLevel1.value + ": "
                     + branch);
             secondLevel.addAll(branch);
         }
         List<Item> mergedLevels = secondLevel.stream()
-                .filter(item ->
-                        item.value.compareTo(BigInteger.valueOf(limit)) < 0)
                 .sorted(Comparator.comparing(Item::getValue))
                 .collect(toList());
         System.out.println("merged levels: " + mergedLevels);
@@ -85,10 +95,25 @@ public class MergeFirstsTwoLevels {
                 .toArray();
         System.out.println("indexes of first level: " + Arrays.toString(indexesOfFirstLevel));
         Util.splitAndPrint(indexesOfFirstLevel, 6);
-        List<Integer> indexesOfSecondLevel = mergedLevels.stream()
-                .map(Item::getI2)
-                .collect(toList());
-        System.out.println("indexes of second level: " + indexesOfSecondLevel);
+        int[] indexesOfSecondLevel = mergedLevels.stream()
+                .mapToInt(Item::getI2)
+                .toArray();
+        System.out.println("indexes of second level: " + Arrays.toString(indexesOfSecondLevel));
+
+        Map<Integer, List<Integer>> groupOfFirstIndexes = groupByValues(indexesOfFirstLevel);
+        System.out.println("Grouping of first indexes:" + groupOfFirstIndexes);
+        System.out.println("Grouping of second indexes:" + groupByValues(indexesOfSecondLevel));
+
+        System.out.println("split, group, first index, zero: ");
+        Util.splitAndPrint(toArray(groupOfFirstIndexes.get(0)), 2);
+        System.out.println("split, group, first index, one: ");
+        Util.splitAndPrint(toArray(groupOfFirstIndexes.get(1)), 2);
+    }
+
+    private int[] toArray(List<Integer> list) {
+        return list.stream()
+                .mapToInt(x -> x)
+                .toArray();
     }
 
     @SuppressWarnings("SuspiciousNameCombination")

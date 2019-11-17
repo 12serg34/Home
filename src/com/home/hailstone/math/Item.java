@@ -15,7 +15,7 @@ public class Item {
         return value;
     }
 
-    private int getIndex() {
+    int getIndex() {
         return index;
     }
 

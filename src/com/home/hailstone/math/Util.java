@@ -116,5 +116,16 @@ public class Util {
         for (int i = 0; i < numberToSplit; i++) {
             System.out.println("splitIndex" + i + ": " + splitIndex.get(i));
         }
+        for (int i = 0; i < numberToSplit; i++) {
+            System.out.println("diff of splitIndex" + i + ": " + diff(splitIndex.get(i)));
+        }
+    }
+
+    private static List<Integer> diff(List<Integer> list) {
+        List<Integer> diff = new ArrayList<>();
+        for (int i = 0; i < list.size() - 1; i++) {
+            diff.add(list.get(i + 1) - list.get(i));
+        }
+        return diff;
     }
 }

@@ -1,18 +1,15 @@
 package com.home.hailstone.math;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.IntFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.TestUtils.testFunction;
 import static com.home.hailstone.math.TestUtils.testOrdering;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
+import static java.util.stream.Collectors.*;
 
 public class BigIntegerUtil {
     private static final BigInteger TWO = BigInteger.valueOf(2);
@@ -106,7 +103,7 @@ public class BigIntegerUtil {
         return Arrays.stream(index)
                 .mapToObj(x -> new Item(x, function.apply(x)))
                 .sorted(Comparator.comparing(Item::getValue))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private static List<List<Integer>> split(int[] index, int numberToSplit) {
@@ -118,5 +115,11 @@ public class BigIntegerUtil {
             splitIndex.get(i % numberToSplit).add(index[i]);
         }
         return splitIndex;
+    }
+
+    public static Map<Integer, List<Integer>> groupByValues(int[] values) {
+        return IntStream.range(0, values.length)
+                .mapToObj(i -> new Item(i, values[i]))
+                .collect(groupingBy(Item::getValue, mapping(Item::getIndex, toList())));
     }
 }
