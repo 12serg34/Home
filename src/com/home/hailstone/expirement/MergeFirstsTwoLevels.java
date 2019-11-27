@@ -1,5 +1,7 @@
 package com.home.hailstone.expirement;
 
+import com.home.hailstone.math.Function;
+import com.home.hailstone.math.FunctionAnalyzer;
 import com.home.hailstone.math.Util;
 
 import java.math.BigInteger;
@@ -8,6 +10,7 @@ import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.BigIntegerUtil.*;
+import static com.home.hailstone.math.SplitHierarchy.splitBy;
 import static java.math.BigInteger.ZERO;
 import static java.util.stream.Collectors.toList;
 
@@ -45,9 +48,9 @@ public class MergeFirstsTwoLevels {
     }
 
     private void run() {
-        System.out.println("Hello, it's merge of two firsts levels");
-        BigInteger limit = BigInteger.valueOf(1_000_000_000);
-        System.out.println("Limit: " + limit);
+        println("Hello, it's merge of two firsts levels");
+        BigInteger limit = BigInteger.valueOf(10).pow(30);
+        println("Limit: " + limit);
 
         int k = 0;
         Item item = new Item(0, 0, x(ZERO, 0));
@@ -60,17 +63,17 @@ public class MergeFirstsTwoLevels {
         if (item.value.compareTo(limit) < 0) {
             firstLevel.add(item);
         }
-        System.out.println("first level: " + firstLevel);
+        println("first level: " + firstLevel);
 
         List<BigInteger> originalFirstLevel = firstLevel.stream()
                 .map(it -> forward1(forward2(it.value)))
                 .collect(toList());
-        System.out.println("original first level: " + originalFirstLevel);
+        println("original first level: " + originalFirstLevel);
 
         List<BigInteger> basesFromFirstLevel = IntStream.range(0, 100)
                 .mapToObj(i -> x(x(ZERO, i), 0))
                 .collect(toList());
-        System.out.println("bases from first level: " + basesFromFirstLevel);
+        println("bases from first level: " + basesFromFirstLevel);
 
         List<Item> secondLevel = new ArrayList<>();
         for (int i = 0; i < firstLevel.size(); i++) {
@@ -82,32 +85,70 @@ public class MergeFirstsTwoLevels {
                 branch.add(item);
                 item = new Item(i, ++k, x(itemFromLevel1.value, k));
             }
-            System.out.println("branch of second level number " + i + " from " + itemFromLevel1.value + ": "
+            println("branch of second level number " + i + " from " + itemFromLevel1.value + ": "
                     + branch);
             secondLevel.addAll(branch);
         }
         List<Item> mergedLevels = secondLevel.stream()
                 .sorted(Comparator.comparing(Item::getValue))
                 .collect(toList());
-        System.out.println("merged levels: " + mergedLevels);
+        println("merged levels: " + mergedLevels);
         int[] indexesOfFirstLevel = mergedLevels.stream()
                 .mapToInt(Item::getI1)
                 .toArray();
-        System.out.println("indexes of first level: " + Arrays.toString(indexesOfFirstLevel));
-        Util.splitAndPrint(indexesOfFirstLevel, 6);
+        println("indexes of first level: " + Arrays.toString(indexesOfFirstLevel));
         int[] indexesOfSecondLevel = mergedLevels.stream()
                 .mapToInt(Item::getI2)
                 .toArray();
-        System.out.println("indexes of second level: " + Arrays.toString(indexesOfSecondLevel));
+        println("indexes of second level: " + Arrays.toString(indexesOfSecondLevel));
 
         Map<Integer, List<Integer>> groupOfFirstIndexes = groupByValues(indexesOfFirstLevel);
-        System.out.println("Grouping of first indexes:" + groupOfFirstIndexes);
-        System.out.println("Grouping of second indexes:" + groupByValues(indexesOfSecondLevel));
+        println("Grouping of first indexes:" + groupOfFirstIndexes);
+        println("Grouping of second indexes:" + groupByValues(indexesOfSecondLevel));
 
-        System.out.println("split, group, first index, zero: ");
+        println("split, group, first index, zero: ");
         Util.splitAndPrint(toArray(groupOfFirstIndexes.get(0)), 2);
-        System.out.println("split, group, first index, one: ");
+        println("split, group, first index, one: ");
         Util.splitAndPrint(toArray(groupOfFirstIndexes.get(1)), 2);
+
+        println("\nAfter all it can look like this:");
+        println("split, group, first index, zero: ");
+        Util.split(groupOfFirstIndexes.get(0), splitBy(6, 2));
+        println("split, group, first index, one: ");
+        Util.split(groupOfFirstIndexes.get(1), splitBy(6, 2));
+        println("split, group, first index, two: ");
+        Util.split(groupOfFirstIndexes.get(2), splitBy(6, 2));
+        println("split, group, first index, three: ");
+        Util.split(groupOfFirstIndexes.get(3), splitBy(6, 2));
+        println("split, group, first index, four: ");
+        Util.split(groupOfFirstIndexes.get(4), splitBy(6, 2));
+        println("split, group, first index, five: ");
+        Util.split(groupOfFirstIndexes.get(5), splitBy(6, 2));
+        println("split, group, first index, six: ");
+        Util.split(groupOfFirstIndexes.get(6), splitBy(6, 2));
+
+        println("\nAttempt to analyze function automatically");
+        FunctionAnalyzer analyzer = new FunctionAnalyzer();
+        List<Function> functions = new ArrayList<>();
+        for (int v = 0; v < groupOfFirstIndexes.size(); v++) {
+            List<List<Integer>> split = Util.split(groupOfFirstIndexes.get(v), 6);
+            functions.add(analyzer.analyze(split.get(0)));
+        }
+        List<Integer> collect = functions.stream()
+                .map(f -> f.getCoefficient(0))
+                .collect(toList());
+        println(collect);
+        println(analyzer.analyze(collect, 6));
+        List<Integer> collect2 = functions.stream()
+                .filter(f -> f.getSize() > 1)
+                .map(f -> f.getCoefficient(1))
+                .collect(toList());
+        println(collect2);
+        println(analyzer.analyze(collect2, 6));
+    }
+
+    private void println(Object object) {
+        System.out.println(object.toString());
     }
 
     private int[] toArray(List<Integer> list) {

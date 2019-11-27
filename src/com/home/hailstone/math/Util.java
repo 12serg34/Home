@@ -100,13 +100,24 @@ public class Util {
                 .collect(Collectors.toList());
     }
 
-    private static List<List<Integer>> split(int[] index, int numberToSplit) {
+    public static List<List<Integer>> split(int[] index, int numberToSplit) {
         List<List<Integer>> splitIndex = new ArrayList<>(numberToSplit);
         for (int i = 0; i < numberToSplit; i++) {
             splitIndex.add(new ArrayList<>());
         }
         for (int i = 0; i < index.length; i++) {
             splitIndex.get(i % numberToSplit).add(index[i]);
+        }
+        return splitIndex;
+    }
+
+    public static List<List<Integer>> split(List<Integer> index, int numberToSplit) {
+        List<List<Integer>> splitIndex = new ArrayList<>(numberToSplit);
+        for (int i = 0; i < numberToSplit; i++) {
+            splitIndex.add(new ArrayList<>());
+        }
+        for (int i = 0; i < index.size(); i++) {
+            splitIndex.get(i % numberToSplit).add(index.get(i));
         }
         return splitIndex;
     }
@@ -121,11 +132,57 @@ public class Util {
         }
     }
 
-    private static List<Integer> diff(List<Integer> list) {
-        List<Integer> diff = new ArrayList<>();
+    public static void split(List<Integer> values, SplitHierarchy hierarchy) {
+        int size = hierarchy.getSize();
+        List<List<Integer>> splitValues = new ArrayList<>(size);
+        boolean isSimple = hierarchy.isSimple();
+        boolean hasDiffs = hierarchy.hasDiffs();
+        if (size == 1) {
+            if (isSimple) {
+                if (hasDiffs) {
+                    diff(values, hierarchy.getDiffDepth(0));
+                }
+            }
+            return;
+        } else {
+            for (int i = 0; i < size; i++) {
+                splitValues.add(new ArrayList<>());
+            }
+            for (int i = 0; i < values.size(); i++) {
+                splitValues.get(i % size).add(values.get(i));
+            }
+        }
+
+        for (int i = 0; i < size; i++) {
+            List<Integer> branch = splitValues.get(i);
+            System.out.println(branch);
+            if (isSimple) {
+                if (hasDiffs) {
+                    diff(branch, hierarchy.getDiffDepth(i));
+                }
+            } else {
+                split(branch, hierarchy.getChild(i));
+            }
+        }
+    }
+
+    public static List<Integer> diff(List<Integer> list) {
+        List<Integer> diff = new ArrayList<>(list.size() - 1);
         for (int i = 0; i < list.size() - 1; i++) {
             diff.add(list.get(i + 1) - list.get(i));
         }
         return diff;
+    }
+
+    private static void diff(List<Integer> list, int depth) {
+        if (depth < 1) {
+            return;
+        }
+        List<Integer> diff = new ArrayList<>(list.size() - 1);
+        for (int i = 0; i < list.size() - 1; i++) {
+            diff.add(list.get(i + 1) - list.get(i));
+        }
+        System.out.println(diff);
+        diff(diff, depth - 1);
     }
 }
