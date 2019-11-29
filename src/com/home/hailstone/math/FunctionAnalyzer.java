@@ -16,7 +16,7 @@ public class FunctionAnalyzer {
         this.depth = depth;
     }
 
-    public Function analyze(List<Integer> data) {
+    private Function analyze(List<Integer> data) {
         List<Integer> coefficients = new ArrayList<>();
         coefficients.add(data.get(0));
         int currentDepth = 0;

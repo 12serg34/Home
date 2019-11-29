@@ -1,5 +1,7 @@
 package com.home.hailstone.math;
 
+import com.home.hailstone.Item;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -71,9 +73,9 @@ public class Util {
                                               int numberToSplit) {
         int[] index = IntStream.range(0, size).toArray();
         int[] appliedFunction = applyFunction(function, index);
-        List<Item> sortedItems = sort(function, index);
-        int[] sortedFunction = Item.extractValues(sortedItems);
-        int[] sortedIndex = Item.extractIndexes(sortedItems);
+        List<Item<Integer>> sortedItems = sort(function, index);
+        int[] sortedFunction = sortedItems.stream().mapToInt(Item::getValue).toArray();
+        int[] sortedIndex = sortedItems.stream().mapToInt(Item::getFirstIndex).toArray();
         List<List<Integer>> splitIndex = split(sortedIndex, numberToSplit);
         System.out.println("index: " + Arrays.toString(index));
         System.out.println("function: " + Arrays.toString(appliedFunction));
@@ -93,9 +95,9 @@ public class Util {
                 .toArray();
     }
 
-    private static List<Item> sort(IntFunction<Integer> function, int[] index) {
+    private static List<Item<Integer>> sort(IntFunction<Integer> function, int[] index) {
         return Arrays.stream(index)
-                .mapToObj(x -> new Item(x, function.apply(x)))
+                .mapToObj(x -> new Item<>(function.apply(x), x))
                 .sorted(Comparator.comparing(Item::getValue))
                 .collect(Collectors.toList());
     }
