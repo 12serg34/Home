@@ -1,6 +1,8 @@
 package com.home.hailstone.math;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
@@ -47,5 +49,13 @@ public class BigIntegerUtil {
     public static BigInteger powOf2(int x) {
         assert x > -1;
         return TWO.pow(x);
+    }
+
+    public static List<BigInteger> diff(List<BigInteger> list) {
+        List<BigInteger> diff = new ArrayList<>(list.size() - 1);
+        for (int i = 0; i < list.size() - 1; i++) {
+            diff.add(list.get(i + 1).subtract(list.get(i)));
+        }
+        return diff;
     }
 }

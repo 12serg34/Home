@@ -6,6 +6,7 @@ import com.home.hailstone.math.FunctionAnalyzer;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
@@ -58,7 +59,7 @@ public class SortSecondLevel {
         List<Item<BigInteger>> firstLevel = calculateFirstLevel();
         List<Item<BigInteger>> secondLevel = calculateSecondLevel(firstLevel);
 
-        List<Item> sorted = secondLevel.stream()
+        List<Item<BigInteger>> sorted = secondLevel.stream()
                 .sorted(Comparator.comparing(Item::getValue))
                 .collect(toList());
         println("sorted: " + sorted.stream().map(Item::getValue).collect(toList()));
@@ -116,6 +117,51 @@ public class SortSecondLevel {
                 "+ 36 * s(|v / 6|) " +
                 "+ (C(l, v) + 36 * |v / 6|) * |l / 6| " +
                 "+ 36 * s(|l / 6|)");
+
+        List<Integer> counts = countValues(firstIndexes);
+        println("count values of first indexes: " + counts);
+        Map<Integer, List<Integer>> groupByValues = groupByValues(counts);
+        println(groupByValues);
+        for (int i = 0; i < 10; i++) {
+            println(analyzer.analyze(groupByValues.get(i), 6));
+        }
+        println(firstIndexes);
+        println(counts);
+        println(countValues(counts));
+        println(countValues(countValues(counts)));
+        println(countValues(countValues(countValues(counts))));
+
+//        println("Sorted 2^(i1+i2) - 2^i2 ~~~");
+//        for (int i = 0; i < firstIndexes.size(); i++) {
+//            int i1 = i(BigInteger.valueOf(firstIndexes.get(i)), );
+//            int i2 = secondIndexes.get(i);
+//        }
+        List<BigInteger> diff = diff(sorted.stream().map(Item::getValue).collect(toList()));
+        println(diff);
+
+        System.out.println("B - C = " + Arrays.deepToString(apply(B, C, (b, c) -> b - c)));
+        System.out.println("(B - 18)^2 - 72 * A = " + Arrays.deepToString(
+                apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a)));
+        System.out.println("((B - 18)^2 - 72 * A) / 4 = " + Arrays.deepToString(
+                apply(B, A, (b, a) -> ((b - 18) * (b - 18) - 72 * a) / 4)));
+        /*
+        Next task:
+            Implement algorithm that took function f(x) (x - integer, f(x) - double) and found first x that give
+            integer f(x).
+            Vary i in discriminant of v formula, check that works for l(i).
+            Another variant, build table i/l and underline(or mark somehow) real function l(i), try to guess how it can be found,
+            what's relation between them in scope of E(D(i)) (space of definition for i and l(i))
+         */
+    }
+
+    private int[][] apply(int[][] x, int[][] y, IntBinaryOperator operator) {
+        int[][] z = new int[x.length][x[0].length];
+        for (int i = 0; i < x.length; i++) {
+            for (int j = 0; j < x[0].length; j++) {
+                z[i][j] = operator.applyAsInt(x[i][j], y[i][j]);
+            }
+        }
+        return z;
     }
 
     private List<Integer> getCoefficients(int t, int c) {
@@ -169,12 +215,6 @@ public class SortSecondLevel {
         System.out.println(object.toString());
     }
 
-    private int[] toArray(List<Integer> list) {
-        return list.stream()
-                .mapToInt(x -> x)
-                .toArray();
-    }
-
     @SuppressWarnings("SuspiciousNameCombination")
     private BigInteger x(BigInteger y, int k) {
         return reverse2(reverse1(
@@ -192,5 +232,16 @@ public class SortSecondLevel {
     private final int merge(int x, IntFunction<Integer>... functions) {
         int size = functions.length;
         return functions[x % size].apply(x / size);
+    }
+
+    private List<Integer> countValues(List<Integer> data) {
+        List<Integer> counts = new ArrayList<>(data.size());
+        Map<Integer, Integer> valueToCount = new HashMap<>();
+        for (Integer value : data) {
+            Integer currentCount = valueToCount.getOrDefault(value, 0);
+            counts.add(currentCount);
+            valueToCount.put(value, currentCount + 1);
+        }
+        return counts;
     }
 }
