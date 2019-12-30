@@ -6,7 +6,7 @@ import com.home.hailstone.math.FunctionAnalyzer;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.function.IntBinaryOperator;
+import java.util.function.BinaryOperator;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
@@ -140,10 +140,10 @@ public class SortSecondLevel {
         println(diff);
 
         System.out.println("B - C = " + Arrays.deepToString(apply(B, C, (b, c) -> b - c)));
-        System.out.println("(B - 18)^2 - 72 * A = " + Arrays.deepToString(
-                apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a)));
-        System.out.println("((B - 18)^2 - 72 * A) / 4 = " + Arrays.deepToString(
-                apply(B, A, (b, a) -> ((b - 18) * (b - 18) - 72 * a) / 4)));
+        int[][] T = apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a);
+        System.out.println("(B - 18) / 36 = " + Arrays.deepToString(applyDouble(B, b -> (b - 18) / 36.0)));
+        System.out.println("T(l, v) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
+        System.out.println("T / 4 = " + Arrays.deepToString(apply(T, x -> x / 4)));
         /*
         Next task:
             Implement algorithm that took function f(x) (x - integer, f(x) - double) and found first x that give
@@ -152,13 +152,98 @@ public class SortSecondLevel {
             Another variant, build table i/l and underline(or mark somehow) real function l(i), try to guess how it can be found,
             what's relation between them in scope of E(D(i)) (space of definition for i and l(i))
          */
+        List<Integer> indexesInSpaceOfDefinition = new ArrayList<>(firstIndexes.size());
+        for (int i = 0; i < firstIndexes.size(); i++) {
+            int ii = i;
+            List<Integer> spaceOfDefinition = getSpaceOfDefinition(
+                    l -> {
+                        int L = l / 6;
+                        Integer v = firstIndexes.get(ii);
+                        int decremental = T[l % 6][v % 6] + 72 * (ii + 2 * L);
+                        return (-(36 * L + B[l % 6][v % 6] - 18) + Math.sqrt(decremental)) / 36;
+                    },
+                    33);
+            Integer l = counts.get(i);
+//            System.out.println(spaceOfDefinition + " l(i) = " + l);
+            indexesInSpaceOfDefinition.add(spaceOfDefinition.indexOf(l));
+        }
+        System.out.println(counts.stream().mapToInt(x -> x).max());
+        System.out.println(indexesInSpaceOfDefinition);
+        /*
+            all values are zero therefore l in function v(l, i) it's a first value that fits space of definition of
+            v(i,l) function e.g. E[v(i, l)]
+        */
+
+        List<Integer> vmod6 = firstIndexes.stream().map(x -> x % 6).collect(toList());
+        System.out.println("v(i) % 6 = " + vmod6);
+        System.out.println("A[l, v] % 6 = " + Arrays.deepToString(apply(A, a -> a % 6)));
+        System.out.println("B[l, v] % 6 = " + Arrays.deepToString(apply(B, b -> b % 6)));
+        System.out.println("C[l, v] % 6 = " + Arrays.deepToString(apply(C, c -> c % 6)));
+        Map<Integer, List<Integer>> groupvmod6 = groupByValues(vmod6);
+        System.out.println("group by values of v % 6 = " + groupvmod6);
+//        System.out.println("analyze of 0-s values of v % 6 = " + analyzer.analyze(groupvmod6.get(0), ));
+
+        int[][] O = new int[6][6];
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                O[i][j] = i * 6 + j;
+            }
+        }
+        List<Integer> lmod6 = counts.stream().map(x -> x % 6).collect(toList());
+        List<Integer> Olv = IntStream.range(0, firstIndexes.size())
+                .mapToObj(i -> O[lmod6.get(i)][vmod6.get(i)])
+                .collect(toList());
+        System.out.println("O(l,v) = " + Olv);
     }
 
-    private int[][] apply(int[][] x, int[][] y, IntBinaryOperator operator) {
+    private void testGetSpaceOfDefinition() {
+        System.out.println(getSpaceOfDefinition(x -> (double) x, 100));
+        System.out.println(getSpaceOfDefinition(x -> (double) 2 * x, 100));
+        System.out.println(getSpaceOfDefinition(x -> (double) x / 2, 100));
+        System.out.println(getSpaceOfDefinition(Math::sqrt, 100));
+
+    }
+
+    private List<Integer> getSpaceOfDefinition(IntFunction<Double> function, int lastValue) {
+        List<Integer> result = new ArrayList<>();
+        for (int x = 0; x <= lastValue; x++) {
+            Double d;
+            if (isInteger(function.apply(x))) {
+                result.add(x);
+            }
+        }
+        return result;
+    }
+
+    private boolean isInteger(double value) {
+        return value % 1 == 0;
+    }
+
+    private int[][] apply(int[][] x, int[][] y, BinaryOperator<Integer> operator) {
         int[][] z = new int[x.length][x[0].length];
         for (int i = 0; i < x.length; i++) {
             for (int j = 0; j < x[0].length; j++) {
-                z[i][j] = operator.applyAsInt(x[i][j], y[i][j]);
+                z[i][j] = operator.apply(x[i][j], y[i][j]);
+            }
+        }
+        return z;
+    }
+
+    private int[][] apply(int[][] x, IntFunction<Integer> operator) {
+        int[][] z = new int[x.length][x[0].length];
+        for (int i = 0; i < x.length; i++) {
+            for (int j = 0; j < x[0].length; j++) {
+                z[i][j] = operator.apply(x[i][j]);
+            }
+        }
+        return z;
+    }
+
+    private double[][] applyDouble(int[][] x, IntFunction<Double> operator) {
+        double[][] z = new double[x.length][x[0].length];
+        for (int i = 0; i < x.length; i++) {
+            for (int j = 0; j < x[0].length; j++) {
+                z[i][j] = operator.apply(x[i][j]);
             }
         }
         return z;
