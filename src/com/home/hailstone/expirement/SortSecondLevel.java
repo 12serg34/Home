@@ -152,26 +152,68 @@ public class SortSecondLevel {
             Another variant, build table i/l and underline(or mark somehow) real function l(i), try to guess how it can be found,
             what's relation between them in scope of E(D(i)) (space of definition for i and l(i))
          */
-        List<Integer> indexesInSpaceOfDefinition = new ArrayList<>(firstIndexes.size());
-        for (int i = 0; i < firstIndexes.size(); i++) {
-            int ii = i;
-            List<Integer> spaceOfDefinition = getSpaceOfDefinition(
-                    l -> {
-                        int L = l / 6;
-                        Integer v = firstIndexes.get(ii);
-                        int decremental = T[l % 6][v % 6] + 72 * (ii + 2 * L);
-                        return (-(36 * L + B[l % 6][v % 6] - 18) + Math.sqrt(decremental)) / 36;
-                    },
-                    33);
-            Integer l = counts.get(i);
-//            System.out.println(spaceOfDefinition + " l(i) = " + l);
-            indexesInSpaceOfDefinition.add(spaceOfDefinition.indexOf(l));
+        TetraFunction<Integer, Integer, Integer, Double> function_V = (i, l, vMod6) -> {
+            int L = l / 6;
+            int decremental = T[l % 6][vMod6] + 72 * (i + 2 * L);
+            return (-(36 * L + B[l % 6][vMod6] - 18) + Math.sqrt(decremental)) / 36;
+        };
+        int maxOf_l = counts.stream().mapToInt(x -> x).max().getAsInt();
+        System.out.println("max l = " + maxOf_l);
+        {
+            // check of function_V
+            for (int i = 0; i < firstIndexes.size(); i++) {
+                int v = firstIndexes.get(i);
+                int l = counts.get(i);
+                int V_to_check = (int) ((double) function_V.apply(i, l, v % 6));
+                if ((v / 6) != V_to_check) {
+                    System.out.print("test failed: expected = " + (v / 6) + ", actual = " + V_to_check);
+                    break;
+                }
+            }
         }
-        System.out.println(counts.stream().mapToInt(x -> x).max());
-        System.out.println(indexesInSpaceOfDefinition);
+        {
+            List<Integer> indexesInSpaceOfDefinition = new ArrayList<>(firstIndexes.size());
+            for (int i = 0; i < firstIndexes.size(); i++) {
+                int ii = i;
+                List<Integer> spaceOfDefinition = getSpaceOfDefinition(
+                        l -> function_V.apply(ii, l, firstIndexes.get(ii) % 6),
+                        maxOf_l);
+                Integer l = counts.get(i);
+//            System.out.println(spaceOfDefinition + " l(i) = " + l);
+                indexesInSpaceOfDefinition.add(spaceOfDefinition.indexOf(l));
+            }
+            System.out.println(indexesInSpaceOfDefinition);
+        }
         /*
             all values are zero therefore l in function v(l, i) it's a first value that fits space of definition of
             v(i,l) function e.g. E[v(i, l)]
+        */
+        {
+            List<Integer> another_l = new ArrayList<>(firstIndexes.size());
+            for (int i = 0; i < firstIndexes.size(); i++) {
+                int _i = i;
+                int min = Integer.MAX_VALUE;
+                for (int vMod6 = 0; vMod6 < 6; vMod6++) {
+                    int _vMod6 = vMod6;
+                    List<Integer> spaceOfDefinition = getSpaceOfDefinition(
+                            l -> function_V.apply(_i, l, _vMod6),
+                            min);
+                    if (!spaceOfDefinition.isEmpty()) {
+                        Integer candidate = spaceOfDefinition.get(0);
+                        if (candidate < min) {
+                            min = candidate;
+                        }
+                    }
+                }
+                another_l.add(min);
+            }
+            System.out.println(counts);
+            System.out.println(another_l);
+        }
+        /*
+            values of counts - "l" are equal values of another_l that were build as min value of first value in space
+            of definitions of six partial functions of different rest of "v". Therefore l in function v(l, i)
+            it's a first value that fits space of definition of v(i,l) function e.g. E[v(i, l)]
         */
 
         List<Integer> vmod6 = firstIndexes.stream().map(x -> x % 6).collect(toList());
