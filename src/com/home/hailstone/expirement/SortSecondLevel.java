@@ -192,7 +192,7 @@ public class SortSecondLevel {
             List<Integer> another_l = new ArrayList<>(firstIndexes.size());
             for (int i = 0; i < firstIndexes.size(); i++) {
                 int _i = i;
-                int min = Integer.MAX_VALUE;
+                int min = maxOf_l;
                 for (int vMod6 = 0; vMod6 < 6; vMod6++) {
                     int _vMod6 = vMod6;
                     List<Integer> spaceOfDefinition = getSpaceOfDefinition(
