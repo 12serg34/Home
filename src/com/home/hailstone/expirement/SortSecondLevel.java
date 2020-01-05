@@ -215,6 +215,20 @@ public class SortSecondLevel {
             of definitions of six partial functions of different rest of "v". Therefore l in function v(l, i)
             it's a first value that fits space of definition of v(i,l) function e.g. E[v(i, l)]
         */
+        {
+            List<Integer> spaceOfDefinition = getSpaceOfDefinition(
+                    l -> function_V.apply(0, l, 1),
+                    maxOf_l);
+            System.out.println(spaceOfDefinition);
+            Integer l = spaceOfDefinition.get(0);
+            Double V = function_V.apply(0, l, 1);
+            double v = 6 * V + 1;
+            System.out.println(v);
+        }
+        /*
+            May be there is a more strong statement that for given i exists only one rest of v (mod 6) that fits for
+                integer and positive value
+         */
 
         List<Integer> vmod6 = firstIndexes.stream().map(x -> x % 6).collect(toList());
         System.out.println("v(i) % 6 = " + vmod6);
@@ -236,6 +250,8 @@ public class SortSecondLevel {
                 .mapToObj(i -> O[lmod6.get(i)][vmod6.get(i)])
                 .collect(toList());
         System.out.println("O(l,v) = " + Olv);
+
+
     }
 
     private void testGetSpaceOfDefinition() {
