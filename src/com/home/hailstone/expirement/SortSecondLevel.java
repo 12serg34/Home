@@ -258,6 +258,39 @@ public class SortSecondLevel {
             wrong rest of v fall with growing of l
             So, we must find out the space of definition analytically
          */
+        {
+            List<Integer> another_l = new ArrayList<>(firstIndexes.size());
+            for (int i = 0; i < firstIndexes.size(); i++) {
+                int _i = i;
+                int right_l = -1;
+                for (int vMod6 = 0; vMod6 < 6; vMod6++) {
+                    int _vMod6 = vMod6;
+                    List<Integer> spaceOfDefinition = getSpaceOfDefinition(
+                            l -> function_V.apply(_i, l, _vMod6),
+                            1000);
+                    if (!spaceOfDefinition.isEmpty()) {
+                        for (Integer l : spaceOfDefinition) {
+                            double v = 6 * function_V.apply(_i, l, _vMod6).intValue() + _vMod6;
+                            if (v >= 0) {
+                                if (right_l == -1) {
+                                    right_l = l;
+                                } else {
+                                    System.out.println("it's not work");
+                                }
+                            }
+                        }
+                    }
+                }
+                another_l.add(right_l);
+            }
+            System.out.println(counts);
+            System.out.println(another_l);
+        }
+        /*
+            "it's not work" didn't appear. So, it looks like previous assumptions is correct and l has only one
+            appropriate value in terms of space of definition. It takes hope that v function could be found analytically
+            in more or less simple form.
+         */
 
         List<Integer> vmod6 = firstIndexes.stream().map(x -> x % 6).collect(toList());
         System.out.println("v(i) % 6 = " + vmod6);
