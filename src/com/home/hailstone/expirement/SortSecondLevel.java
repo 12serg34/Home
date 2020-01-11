@@ -243,18 +243,20 @@ public class SortSecondLevel {
             it's a first value that fits space of definition of v(i,l) function e.g. E[v(i, l)]
         */
         {
+            int i = 100; // vmod6(i=100) = 1
+            int wrong_vmod6 = 5;
             List<Integer> spaceOfDefinition = getSpaceOfDefinition(
-                    l -> function_V.apply(0, l, 1),
-                    maxOf_l);
+                    l -> function_V.apply(i, l, wrong_vmod6),
+                    1000);
             System.out.println(spaceOfDefinition);
-            Integer l = spaceOfDefinition.get(0);
-            Double V = function_V.apply(0, l, 1);
-            double v = 6 * V + 1;
-            System.out.println(v);
+            spaceOfDefinition.forEach(l -> System.out.println(6 * function_V.apply(i, l, wrong_vmod6) + wrong_vmod6));
         }
         /*
             May be there is a more strong statement that for given i exists only one rest of v (mod 6) that fits for
                 integer and positive value
+            Update: it seems that right l is one point when v not only integer but simply positive. Other v with for
+            wrong rest of v fall with growing of l
+            So, we must find out the space of definition analytically
          */
 
         List<Integer> vmod6 = firstIndexes.stream().map(x -> x % 6).collect(toList());
