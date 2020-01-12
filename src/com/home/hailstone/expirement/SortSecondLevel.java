@@ -357,6 +357,11 @@ public class SortSecondLevel {
                 We got the limit formula L1 took from one piece of space of definition.
              */
         }
+        {
+            int[][] D = apply(B, b -> b - 18);
+            int[][] G = apply(D, d -> d % 36);
+            System.out.println("(G ^ 2 - T) / 72 = " + Arrays.deepToString(apply(G, T, (g, t) -> ((g * g - t) / 72))));
+        }
     }
 
     private void testGetSpaceOfDefinition() {
