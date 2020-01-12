@@ -168,9 +168,11 @@ public class SortSecondLevel {
 
         System.out.println("B - C = " + Arrays.deepToString(apply(B, C, (b, c) -> b - c)));
         int[][] T = apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a);
-        System.out.println("(B - 18) / 36 = " + Arrays.deepToString(applyDouble(B, b -> (b - 18) / 36.0)));
+        System.out.println("B - 18 = " + Arrays.deepToString(apply(B, b -> b - 18)));
         System.out.println("T(l, v) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
         System.out.println("T / 4 = " + Arrays.deepToString(apply(T, x -> x / 4)));
+        System.out.println("(T / 4) mod 3 = " + Arrays.deepToString(apply(T, x -> (x / 4) % 3)));
+        System.out.println("(T / 4) mod 6 = " + Arrays.deepToString(apply(T, x -> (x / 4) % 6)));
         /*
         Next task:
             Implement algorithm that took function f(x) (x - integer, f(x) - double) and found first x that give
@@ -313,6 +315,48 @@ public class SortSecondLevel {
                 .collect(toList());
         System.out.println("O(l,v) = " + Olv);
 
+        {
+            List<Integer> iSubstituteA = IntStream.range(0, firstIndexes.size())
+                    .map(i -> i - A[counts.get(i) % 6][firstIndexes.get(i) % 6])
+                    .boxed()
+                    .collect(toList());
+            System.out.println("i - A(l(i), v(i)) = " + iSubstituteA); // all values more or equal zero
+        }
+
+        {
+            System.out.println("(x * x) % 18 = " + IntStream.range(0, 18)
+                    .map(x -> (x * x) % 18)
+                    .boxed()
+                    .collect(toList()));
+        }
+
+        {
+            List<Double> L1 = IntStream.range(0, firstIndexes.size())
+                    .mapToDouble(i -> {
+                        int l = counts.get(i) % 6;
+                        int v = firstIndexes.get(i) % 6;
+                        int d = B[l][v] - 18;
+                        int a = A[l][v];
+                        return ((-(d - 2) + Math.sqrt((d - 2) * (d - 2) + 2 * 36 * (i - a))) / 36);
+                    })
+                    .boxed()
+                    .collect(toList());
+            List<Integer> L = IntStream.range(0, firstIndexes.size())
+                    .map(i -> counts.get(i) / 6)
+                    .boxed()
+                    .collect(toList());
+            IntStream.range(0, firstIndexes.size())
+                    .forEach(i -> {
+                        Integer l = L.get(i);
+                        Double l1 = L1.get(i);
+                        if (l > l1) {
+                            System.out.println("i = " + i + ", L = " + l + ", L1 = " + l1);
+                        }
+                    });
+            /*
+                We got the limit formula L1 took from one piece of space of definition.
+             */
+        }
     }
 
     private void testGetSpaceOfDefinition() {
