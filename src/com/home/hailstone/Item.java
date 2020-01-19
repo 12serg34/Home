@@ -33,6 +33,10 @@ public class Item<T> {
         return indexes.get(1);
     }
 
+    public int getIndex(int i) {
+        return indexes.get(i);
+    }
+
     public Item<T> getChild(T value, int index) {
         ArrayList<Integer> indexes = new ArrayList<>(this.indexes);
         indexes.add(index);
