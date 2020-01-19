@@ -5,13 +5,18 @@ import com.home.hailstone.math.Function;
 import com.home.hailstone.math.FunctionAnalyzer;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.BigIntegerUtil.*;
-import static java.math.BigInteger.ZERO;
+import static java.math.BigInteger.ONE;
 import static java.util.stream.Collectors.*;
 
 /*
@@ -71,7 +76,11 @@ import static java.util.stream.Collectors.*;
 
 public class SortSecondLevel {
 
-    private BigInteger limit;
+    private static int[][] I = new int[][]{
+            {2, 3, 4, 1, 2, 1},
+            {1, 2, 3, 0, 3, 2}
+    };
+
     private List<List<Function>> functionsByValues;
 
     public static void main(String[] args) {
@@ -82,9 +91,8 @@ public class SortSecondLevel {
         println("It's a merge of two levels");
         int limitExponent = 30;
         println("Limit: " + limitExponent);
-        limit = BigInteger.valueOf(10).pow(limitExponent);
-        List<Item<BigInteger>> firstLevel = calculateFirstLevel();
-        List<Item<BigInteger>> secondLevel = calculateSecondLevel(firstLevel);
+        BigInteger limit = BigInteger.valueOf(10).pow(limitExponent);
+        List<Item<BigInteger>> secondLevel = calculateSecondLevel(limit);
 
         List<Item<BigInteger>> sorted = secondLevel.stream()
                 .sorted(Comparator.comparing(Item::getValue))
@@ -423,34 +431,39 @@ public class SortSecondLevel {
                 .collect(toList());
     }
 
-    private List<Item<BigInteger>> calculateFirstLevel() {
-        List<Item<BigInteger>> firstLevel = new ArrayList<>();
-        int k = 0;
-        Item<BigInteger> item = new Item<>(x(ZERO, 0), 0);
-        while (item.getValue().compareTo(limit) < 0) {
-            firstLevel.add(item);
-            item = new Item<>(x(ZERO, ++k), k);
+    private List<Item<BigInteger>> branch(Item<BigInteger> parent, BigInteger limit) {
+        List<Item<BigInteger>> branch = new ArrayList<>();
+        for (int j = 0; ; j++) {
+            Item<BigInteger> child = calculateChild(parent, j);
+            if (child.getValue().compareTo(limit) <= 0) {
+                branch.add(child);
+            } else break;
         }
-        item = new Item<>(x(ZERO, ++k), k);
-        if (item.getValue().compareTo(limit) < 0) {
-            firstLevel.add(item);
-        }
-        return firstLevel;
+        return branch;
     }
 
-    private List<Item<BigInteger>> calculateSecondLevel(List<Item<BigInteger>> firstLevel) {
+    private Item<BigInteger> calculateChild(Item<BigInteger> parent, int j) {
+        BigInteger childValue = C(parent.getValue(), j);
+        return parent.getChild(childValue, j);
+    }
+
+
+    private BigInteger getParentUpLimit(BigInteger child) {
+        return THREE.multiply(child).add(ONE)
+                .divide(TWO);
+    }
+
+    private List<Item<BigInteger>> calculateFirstLevel(BigInteger limit) {
+        Item<BigInteger> one = new Item<>(ONE);
+        return branch(one, limit);
+    }
+
+    private List<Item<BigInteger>> calculateSecondLevel(BigInteger limit) {
+        BigInteger parentLimit = getParentUpLimit(limit);
+        List<Item<BigInteger>> firstLevel = calculateFirstLevel(parentLimit);
         List<Item<BigInteger>> secondLevel = new ArrayList<>();
-        for (int i = 0; i < firstLevel.size(); i++) {
-            Item<BigInteger> firstLevelItem = firstLevel.get(i);
-            int k = 0;
-            Item<BigInteger> item = new Item<>(
-                    x(firstLevelItem.getValue(), 0), i, 0);
-            List<Item<BigInteger>> branch = new ArrayList<>();
-            while (item.getValue().compareTo(limit) < 0) {
-                branch.add(item);
-                item = new Item<>(x(firstLevelItem.getValue(), ++k), i, k);
-            }
-            secondLevel.addAll(branch);
+        for (Item<BigInteger> firstLevelItem : firstLevel) {
+            secondLevel.addAll(branch(firstLevelItem, limit));
         }
         return secondLevel;
     }
@@ -468,17 +481,13 @@ public class SortSecondLevel {
         System.out.println(object.toString());
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
-    private BigInteger x(BigInteger y, int k) {
-        return R2(R1(
-                F1(F2(y)).multiply(powOf2(i(y, k))).subtract(BigInteger.ONE).divide(THREE)
-        ));
+    private BigInteger C(BigInteger P, int j) {
+        return P.multiply(powOf2(i(P, j))).subtract(ONE)
+                .divide(THREE);
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
-    private int i(BigInteger y, int k) {
-        return merge(k, m -> 6 * m + cycle(y, 2, 3, 4, 1, 2, 1),
-                m -> 6 * m + cycle(y, 4, 5, 6, 3, 6, 5));
+    private int i(BigInteger P, int j) {
+        return 3 * j + cycle(j, R(P), I);
     }
 
     @SafeVarargs

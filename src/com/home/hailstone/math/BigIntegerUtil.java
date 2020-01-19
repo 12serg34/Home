@@ -8,11 +8,18 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 public class BigIntegerUtil {
-    private static final BigInteger TWO = BigInteger.valueOf(2);
+    public static final BigInteger TWO = BigInteger.valueOf(2);
     public static final BigInteger THREE = BigInteger.valueOf(3);
 
     public static int cycle(BigInteger x, int... cycle) {
         return cycle[x.mod(BigInteger.valueOf(cycle.length)).intValue()];
+    }
+
+    public static int cycle(int x, BigInteger y, int[][] cycle) {
+        return cycle
+                [x % (cycle.length)]
+                [y.mod(BigInteger.valueOf(cycle[0].length)).intValue()];
+
     }
 
     private static BigInteger mod2(BigInteger x) {
@@ -43,6 +50,10 @@ public class BigIntegerUtil {
         return x.multiply(BigInteger.valueOf(4))
                 .subtract(mod3(x))
                 .divide(BigInteger.valueOf(6));
+    }
+
+    public static BigInteger R(BigInteger x) {
+        return R2(R1(x));
     }
 
     public static BigInteger powOf2(int x) {
