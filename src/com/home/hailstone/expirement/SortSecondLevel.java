@@ -92,7 +92,7 @@ public class SortSecondLevel {
         int limitExponent = 30;
         println("Limit: " + limitExponent);
         BigInteger limit = BigInteger.valueOf(10).pow(limitExponent);
-        List<Item<BigInteger>> secondLevel = calculateSecondLevel(limit);
+        List<Item<BigInteger>> secondLevel = calculateLevel(2, limit);
 
         List<Item<BigInteger>> sorted = secondLevel.stream()
                 .sorted(Comparator.comparing(Item::getValue))
@@ -447,10 +447,13 @@ public class SortSecondLevel {
         return parent.getChild(childValue, j);
     }
 
-
-    private BigInteger getParentUpLimit(BigInteger child) {
-        return THREE.multiply(child).add(ONE)
-                .divide(TWO);
+    private List<Item<BigInteger>> calculateLevel(int level, BigInteger limit) {
+        if (level == 1) {
+            return calculateFirstLevel(limit);
+        }
+        BigInteger parentLimit = getParentUpLimit(limit);
+        List<Item<BigInteger>> parentLevel = calculateLevel(level - 1, parentLimit);
+        return branch(parentLevel, limit);
     }
 
     private List<Item<BigInteger>> calculateFirstLevel(BigInteger limit) {
@@ -458,14 +461,17 @@ public class SortSecondLevel {
         return branch(one, limit);
     }
 
-    private List<Item<BigInteger>> calculateSecondLevel(BigInteger limit) {
-        BigInteger parentLimit = getParentUpLimit(limit);
-        List<Item<BigInteger>> firstLevel = calculateFirstLevel(parentLimit);
-        List<Item<BigInteger>> secondLevel = new ArrayList<>();
-        for (Item<BigInteger> firstLevelItem : firstLevel) {
-            secondLevel.addAll(branch(firstLevelItem, limit));
+    private BigInteger getParentUpLimit(BigInteger child) {
+        return THREE.multiply(child).add(ONE)
+                .divide(TWO);
+    }
+
+    private List<Item<BigInteger>> branch(List<Item<BigInteger>> parentLevel, BigInteger limit) {
+        List<Item<BigInteger>> childLevel = new ArrayList<>();
+        for (Item<BigInteger> parent : parentLevel) {
+            childLevel.addAll(branch(parent, limit));
         }
-        return secondLevel;
+        return childLevel;
     }
 
     private static Map<Integer, List<Integer>> groupByValues(List<Integer> data) {
