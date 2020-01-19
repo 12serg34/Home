@@ -470,8 +470,8 @@ public class SortSecondLevel {
 
     @SuppressWarnings("SuspiciousNameCombination")
     private BigInteger x(BigInteger y, int k) {
-        return reverse2(reverse1(
-                forward1(forward2(y)).multiply(powOf2(i(y, k))).subtract(BigInteger.ONE).divide(THREE)
+        return R2(R1(
+                F1(F2(y)).multiply(powOf2(i(y, k))).subtract(BigInteger.ONE).divide(THREE)
         ));
     }
 

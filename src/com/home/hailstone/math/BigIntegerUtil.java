@@ -23,24 +23,23 @@ public class BigIntegerUtil {
         return x.mod(THREE);
     }
 
-    public static BigInteger forward1(BigInteger x) {
+    public static BigInteger F1(BigInteger x) {
         return TWO.multiply(x).add(ONE);
     }
 
-    public static BigInteger reverse1(BigInteger x) {
-        assert !mod2(x).equals(ZERO);
+    public static BigInteger R1(BigInteger x) {
+        assert mod2(x).equals(ONE);
         return x.subtract(ONE).divide(TWO);
     }
 
-    public static BigInteger forward2(BigInteger x) {
+    public static BigInteger F2(BigInteger x) {
         return (x.multiply(THREE)
                 .add(mod2(x))
         ).divide(TWO);
     }
 
-    public static BigInteger reverse2(BigInteger x) {
-//        assert x > -1;
-//        assert mod3(x) != 1;
+    public static BigInteger R2(BigInteger x) {
+        assert !mod3(x).equals(ONE);
         return x.multiply(BigInteger.valueOf(4))
                 .subtract(mod3(x))
                 .divide(BigInteger.valueOf(6));
