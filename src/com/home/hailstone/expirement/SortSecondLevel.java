@@ -89,7 +89,7 @@ public class SortSecondLevel {
 
     private void run() {
         println("It's a merge of two levels");
-        int limitExponent = 35;
+        int limitExponent = 100;
         println("Limit: " + limitExponent);
         BigInteger limit = BigInteger.valueOf(10).pow(limitExponent);
         {
@@ -378,32 +378,33 @@ public class SortSecondLevel {
             List<Integer> firstIndexes = sortedThirdLevel.stream()
                     .map(Item::getFirstIndex)
                     .collect(toList());
-            println("first indexes", firstIndexes);
+            println("first indexes" + firstIndexes);
 
             List<Integer> secondIndexes = sortedThirdLevel.stream()
                     .map(Item::getSecondIndex)
                     .collect(toList());
-            println("second indexes", secondIndexes);
+            println("second indexes" + secondIndexes);
 
             List<Integer> thirdIndexes = sortedThirdLevel.stream()
                     .map(it -> it.getIndex(2))
                     .collect(toList());
-            println("third indexes", thirdIndexes);
+            println("third indexes" + thirdIndexes);
 
-            Map<Integer, List<Integer>> groupOfFirstIndexes = groupByValues(firstIndexes);
-            println("Group of first indexes:" + groupOfFirstIndexes);
+            Map<Integer, List<Integer>> groupOfFirstIndexes = groupByValues(thirdIndexes);
+            println("Group of third indexes:" + groupOfFirstIndexes);
 
-            FunctionAnalyzer analyzer = new FunctionAnalyzer();
-            {
-                List<Integer> data = groupOfFirstIndexes.get(0);
-                for (int T = 1; T <= 32; T++) {
-                    List<Function> functions = analyzer.analyze(data, T);
-                    println("first index, value = " + T + ": " + functions);
-                }
-                /*
-                нужно исправить чтобы было не три индекса, а глобальный индекс от мержа второго уровня и третий индекс
-                 */
-            }
+//            FunctionAnalyzer analyzer = new FunctionAnalyzer();
+//            {
+//                List<Integer> data = groupOfFirstIndexes.get(0);
+//                for (int T = 1000; T <= 1128; T++) {
+//                    List<Function> functions = analyzer.analyze(data, T);
+//                    println("first index, value = " + T + ": " + functions);
+//                }
+//                /*
+//                нужно исправить чтобы было не три индекса, а глобальный индекс от мержа второго уровня и третий индекс
+//                    третий индекс остается тритм инексом и его повдение все же непредсказуемо. заметен медленный рост, но ничего точного сказать не получается
+//                 */
+//            }
 
 //            functionsByValues = new ArrayList<>();
 //            for (int v = 0; v < groupOfFirstIndexes.size(); v++) {
