@@ -372,6 +372,7 @@ public class SortSecondLevel {
         }
         {
             List<Item<BigInteger>> thirdLevel = calculateLevel(3, limit);
+            println("sortedThirdLevel", thirdLevel.stream().map(Item::getValue).collect(toList()));
             List<Item<BigInteger>> sortedThirdLevel = sortByValues(thirdLevel);
             println("sortedThirdLevel", sortedThirdLevel.stream().map(Item::getValue).collect(toList()));
 
@@ -385,15 +386,27 @@ public class SortSecondLevel {
                     .collect(toList());
             println("second indexes" + secondIndexes);
 
+            List<Integer> secondSortedIndexes = sortedThirdLevel.stream()
+                    .map(it -> it.getSortedIndex(0))
+                    .collect(toList());
+            println("sorted indexes from second level" + secondSortedIndexes);
+
             List<Integer> thirdIndexes = sortedThirdLevel.stream()
                     .map(it -> it.getIndex(2))
                     .collect(toList());
             println("third indexes" + thirdIndexes);
 
-            Map<Integer, List<Integer>> groupOfFirstIndexes = groupByValues(thirdIndexes);
-            println("Group of third indexes:" + groupOfFirstIndexes);
+            Map<Integer, List<Integer>> groupOfSecondSortedIndexes = groupByValues(secondSortedIndexes);
+            println("Group of secondSortedIndexes:" + groupOfSecondSortedIndexes);
+            FunctionAnalyzer analyzer = new FunctionAnalyzer();
 
-//            FunctionAnalyzer analyzer = new FunctionAnalyzer();
+            for (int v = 0; v < 10; v++) {
+                println("T = 18, v = " + v + ", " + analyzer.analyze(groupOfSecondSortedIndexes.get(v), 18));
+            }
+
+            Map<Integer, List<Integer>> groupOfThirdIndexes = groupByValues(thirdIndexes);
+            println(analyzer.analyze(groupOfThirdIndexes.get(0), 18)); // dosen't work :(
+
 //            {
 //                List<Integer> data = groupOfFirstIndexes.get(0);
 //                for (int T = 1000; T <= 1128; T++) {
@@ -419,8 +432,8 @@ public class SortSecondLevel {
         }
     }
 
-    private List<Item<BigInteger>> sortByValues(List<Item<BigInteger>> secondLevel) {
-        return secondLevel.stream()
+    private List<Item<BigInteger>> sortByValues(List<Item<BigInteger>> level) {
+        return level.stream()
                 .sorted(Comparator.comparing(Item::getValue))
                 .collect(toList());
     }
@@ -523,6 +536,10 @@ public class SortSecondLevel {
         List<Item<BigInteger>> childLevel = new ArrayList<>();
         for (Item<BigInteger> parent : parentLevel) {
             childLevel.addAll(branch(parent, limit));
+        }
+        childLevel.sort(Comparator.comparing(Item::getValue));
+        for (int i = 0; i < childLevel.size(); i++) {
+            childLevel.get(i).addSortedIndex(i);
         }
         return childLevel;
     }
