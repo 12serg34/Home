@@ -369,29 +369,41 @@ public class SortSecondLevel {
                 int[][] G = apply(D, d -> d % 36);
                 System.out.println("(G ^ 2 - T) / 72 = " + Arrays.deepToString(apply(G, T, (g, t) -> ((g * g - t) / 72))));
             }
+            {
+                List<Item<BigInteger>> grouped = secondLevel.stream()
+                        .sorted((it1, it2) -> {
+                            int compareFirstIndex = Integer.compare(it1.getFirstIndex(), it2.getFirstIndex());
+                            if (compareFirstIndex == 0) {
+                                return Integer.compare(it1.getSecondIndex(), it2.getSecondIndex());
+                            }
+                            return compareFirstIndex;
+                        })
+                        .collect(toList());
+                println(grouped.stream().map(Item::getFirstIndex).collect(toList()));
+                println(grouped.stream().map(Item::getSecondIndex).collect(toList()));
+                println(grouped.stream().map(it -> it.getSortedIndex(0)).collect(toList()));
+            }
         }
         {
             List<Item<BigInteger>> thirdLevel = calculateLevel(3, limit);
-            println("sortedThirdLevel", thirdLevel.stream().map(Item::getValue).collect(toList()));
-            List<Item<BigInteger>> sortedThirdLevel = sortByValues(thirdLevel);
-            println("sortedThirdLevel", sortedThirdLevel.stream().map(Item::getValue).collect(toList()));
+            println("thirdLevel", thirdLevel.stream().map(Item::getValue).collect(toList()));
 
-            List<Integer> firstIndexes = sortedThirdLevel.stream()
+            List<Integer> firstIndexes = thirdLevel.stream()
                     .map(Item::getFirstIndex)
                     .collect(toList());
             println("first indexes" + firstIndexes);
 
-            List<Integer> secondIndexes = sortedThirdLevel.stream()
+            List<Integer> secondIndexes = thirdLevel.stream()
                     .map(Item::getSecondIndex)
                     .collect(toList());
             println("second indexes" + secondIndexes);
 
-            List<Integer> secondSortedIndexes = sortedThirdLevel.stream()
+            List<Integer> secondSortedIndexes = thirdLevel.stream()
                     .map(it -> it.getSortedIndex(0))
                     .collect(toList());
             println("sorted indexes from second level" + secondSortedIndexes);
 
-            List<Integer> thirdIndexes = sortedThirdLevel.stream()
+            List<Integer> thirdIndexes = thirdLevel.stream()
                     .map(it -> it.getIndex(2))
                     .collect(toList());
             println("third indexes" + thirdIndexes);
@@ -405,7 +417,27 @@ public class SortSecondLevel {
             }
 
             Map<Integer, List<Integer>> groupOfThirdIndexes = groupByValues(thirdIndexes);
-            println(analyzer.analyze(groupOfThirdIndexes.get(0), 18)); // dosen't work :(
+            println(analyzer.analyze(groupOfThirdIndexes.get(0), 18)); // doesn't work :(
+
+            {
+                List<Item<BigInteger>> grouped = thirdLevel.stream()
+                        .sorted((it1, it2) -> {
+                            int compareFirstIndex = Integer.compare(it1.getFirstIndex(), it2.getFirstIndex());
+                            if (compareFirstIndex == 0) {
+                                int compareSecondIndex = Integer.compare(it1.getSecondIndex(), it2.getSecondIndex());
+                                if (compareSecondIndex == 0) {
+                                    return Integer.compare(it1.getIndex(2), it2.getIndex(2));
+                                }
+                                return compareSecondIndex;
+                            }
+                            return compareFirstIndex;
+                        })
+                        .collect(toList());
+                println(grouped.stream().map(Item::getFirstIndex).collect(toList()));
+                println(grouped.stream().map(Item::getSecondIndex).collect(toList()));
+                println(grouped.stream().map(it -> it.getIndex(2)).collect(toList()));
+                println(grouped.stream().map(it -> it.getSortedIndex(1)).collect(toList()));
+            }
 
 //            {
 //                List<Integer> data = groupOfFirstIndexes.get(0);
