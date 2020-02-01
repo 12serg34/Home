@@ -1,56 +1,42 @@
 package com.home.hailstone;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class Item<T> {
+public class Item {
     private List<Integer> indexes;
-    private List<Integer> sortedIndexes;
-    private T value;
+    private BigInteger value;
+    private int levelIndex;
 
-    private Item(T value, List<Integer> indexes, List<Integer> sortedIndexes) {
+    public Item(BigInteger value, List<Integer> indexes) {
         this.indexes = indexes;
-        this.sortedIndexes = sortedIndexes;
         this.value = value;
     }
 
-    public Item(T value, int... indexes) {
-        this.indexes = Arrays.stream(indexes)
-                .boxed()
-                .collect(Collectors.toList());
-        this.sortedIndexes = new ArrayList<>();
-        this.value = value;
+    public Item getChild(BigInteger value, int index) {
+        List<Integer> indexes = new ArrayList<>(this.indexes);
+        indexes.add(index);
+        return new Item(value, indexes);
     }
 
-    public T getValue() {
-        return value;
-    }
-
-    public int getFirstIndex() {
-        return indexes.get(0);
-    }
-
-    public int getSecondIndex() {
-        return indexes.get(1);
+    public List<Integer> getIndexes() {
+        return indexes;
     }
 
     public int getIndex(int i) {
         return indexes.get(i);
     }
 
-    public int getSortedIndex(int i) {
-        return sortedIndexes.get(i);
+    public BigInteger getValue() {
+        return value;
     }
 
-    public Item<T> getChild(T value, int index) {
-        ArrayList<Integer> indexes = new ArrayList<>(this.indexes);
-        indexes.add(index);
-        return new Item<T>(value, indexes, new ArrayList<>(sortedIndexes));
+    public int getLevelIndex() {
+        return levelIndex;
     }
 
-    public void addSortedIndex(int index) {
-        sortedIndexes.add(index);
+    public void setLevelIndex(int levelIndex) {
+        this.levelIndex = levelIndex;
     }
 }
