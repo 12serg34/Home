@@ -109,6 +109,13 @@ import static java.util.stream.Collectors.toList;
         /*
             l - level index. It's an index of value where it has place in some level.
          */
+        /*
+                We got the limit formula L1 took from one piece of space of definition.
+             */
+        /*
+//                нужно исправить чтобы было не три индекса, а глобальный индекс от мержа второго уровня и третий индекс
+//                    третий индекс остается тритм инексом и его повдение все же непредсказуемо. заметен медленный рост, но ничего точного сказать не получается
+//                 */
 
 public class SortSecondLevel {
 
@@ -135,6 +142,7 @@ public class SortSecondLevel {
                 .forEach(levelIndex -> secondLevel.get(levelIndex)
                         .setLevelIndex(levelIndex));
 
+        int levelSize = secondLevel.size();
         List<Integer> j0List = toIndexList(secondLevel, 0);
         List<Integer> j1List = toIndexList(secondLevel, 1);
 
@@ -149,8 +157,7 @@ public class SortSecondLevel {
         FunctionAnalyzer analyzer = new FunctionAnalyzer();
         @SuppressWarnings("OptionalGetWithoutIsPresent") int j1Max = j1List.stream().max(Integer::compareTo).get();
         lByj1Functions = new ArrayList<>();
-        int period = 6;
-        for (int j0 = 0; j0 < period * 4; j0++) {
+        for (int j0 = 0; j0 < 6 * 4; j0++) {
             List<Integer> lByj1 = new ArrayList<>();
             for (int j1 = 0; j1 <= j1Max; j1++) {
                 Item item = jToItem.get(asList(j0, j1));
@@ -159,7 +166,7 @@ public class SortSecondLevel {
                 }
                 lByj1.add(item.getLevelIndex());
             }
-            List<PalindromeFunction> palindromeFunctions = analyzer.analyze("j1", lByj1, period);
+            List<PalindromeFunction> palindromeFunctions = analyzer.analyze("j1", lByj1, 6);
             lByj1Functions.add(palindromeFunctions);
             System.out.printf("j0 = %1s, l(j1) = %2s\n", j0, merge(palindromeFunctions));
         }
@@ -167,81 +174,83 @@ public class SortSecondLevel {
         int[][] A = new int[6][6];
         int[][] B = new int[6][6];
         int[][] C = new int[6][6];
-        for (int c = 0; c < 2; c++) {
-            for (int l = 0; l < 6; l++) {
-                List<PalindromeFunction> functionsOfCoefficients = analyzer.analyze("j0", getCoefficients(l, c), 6);
-                if (c == 0) {
-                    for (int v = 0; v < 6; v++) {
-                        A[l][v] = ((Value) functionsOfCoefficients.get(v).getCoefficient(0).getAs()).getValue();
-                        B[l][v] = ((Value) functionsOfCoefficients.get(v).getCoefficient(1).getAs()).getValue();
+        for (int coefficientIndex = 0; coefficientIndex < 2; coefficientIndex++) {
+            for (int j1Mod6 = 0; j1Mod6 < 6; j1Mod6++) {
+                List<PalindromeFunction> functionsOfCoefficients =
+                        analyzer.analyze(
+                                "j0",
+                                getCoefficients(j1Mod6, coefficientIndex), 6);
+                if (coefficientIndex == 0) {
+                    for (int j0Mod6 = 0; j0Mod6 < 6; j0Mod6++) {
+                        A[j1Mod6][j0Mod6] = ((Value) functionsOfCoefficients.get(j0Mod6).getCoefficient(0).getAs()).getValue();
+                        B[j1Mod6][j0Mod6] = ((Value) functionsOfCoefficients.get(j0Mod6).getCoefficient(1).getAs()).getValue();
                     }
                 } else {
-                    for (int v = 0; v < 6; v++) {
-                        C[l][v] = ((Value) functionsOfCoefficients.get(v).getCoefficient(0).getAs()).getValue();
+                    for (int j0Mod6 = 0; j0Mod6 < 6; j0Mod6++) {
+                        C[j1Mod6][j0Mod6] = ((Value) functionsOfCoefficients.get(j0Mod6).getCoefficient(0).getAs()).getValue();
                     }
                 }
-                println("coefficients c = " + c + ", j1 % 6 = " + l + ": " + merge(functionsOfCoefficients));
+                println("coefficients coefficientIndex = " + coefficientIndex
+                        + ", j1 % 6 = " + j1Mod6 + ": " + merge(functionsOfCoefficients));
             }
         }
-        println("A(l, v) = " + Arrays.deepToString(A));
-        println("B(l, v) = " + Arrays.deepToString(B));
-        println("C(l, v) = " + Arrays.deepToString(C));
-        println("position of value \"v\" with number \"l\" in first index = " +
-                "A(l, v) " +
-                "+ B(l, v) * |v / 6| " +
-                "+ 36 * s(|v / 6|) " +
-                "+ (C(l, v) + 36 * |v / 6|) * |l / 6| " +
-                "+ 36 * s(|l / 6|)");
+        println("A(j1, j0) = " + Arrays.deepToString(A));
+        println("B(j1, j0) = " + Arrays.deepToString(B));
+        println("C(j1, j0) = " + Arrays.deepToString(C));
+        println("l(j0, j1) = " +
+                "A(j1, j0) " +
+                "+ B(j1, j0) * |j0 / 6| " +
+                "+ 36 * S2(|j0 / 6|) " +
+                "+ (C(j1, j0) + 36 * |j0 / 6|) * |j1 / 6| " +
+                "+ 36 * S2(|j1 / 6|)");
 
         System.out.println("B - C = " + Arrays.deepToString(apply(B, C, (b, c) -> b - c)));
         int[][] T = apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a);
         System.out.println("B - 18 = " + Arrays.deepToString(apply(B, b -> b - 18)));
-        System.out.println("T(l, v) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
+        System.out.println("T(j1, j0) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
         System.out.println("T / 4 = " + Arrays.deepToString(apply(T, x -> x / 4)));
         System.out.println("(T / 4) mod 3 = " + Arrays.deepToString(apply(T, x -> (x / 4) % 3)));
         System.out.println("(T / 4) mod 6 = " + Arrays.deepToString(apply(T, x -> (x / 4) % 6)));
 
-        TetraFunction<Integer, Integer, Integer, Double> function_V = (i, l, vMod6) -> {
-            int L = l / 6;
-            int decremental = T[l % 6][vMod6] + 72 * (i + 2 * L);
-            return (-(36 * L + B[l % 6][vMod6] - 18) + Math.sqrt(decremental)) / 36;
+        TetraFunction<Integer, Integer, Integer, Double> function_J0 = (l, j1, j0Mod6) -> {
+            int J1 = j1 / 6;
+            int decremental = T[j1 % 6][j0Mod6] + 72 * (l + 2 * J1);
+            return (-(36 * J1 + B[j1 % 6][j0Mod6] - 18) + Math.sqrt(decremental)) / 36;
         };
-        System.out.println("max l = " + (int) j1Max);
+        System.out.println("max j1 = " + j1Max);
         {
-            // check of function_V
-            for (int i = 0; i < j0List.size(); i++) {
-                int v = j0List.get(i);
-                int l = j1List.get(i);
-                int V_to_check = (int) ((double) function_V.apply(i, l, v % 6));
-                if ((v / 6) != V_to_check) {
-                    System.out.print("test failed: expected = " + (v / 6) + ", actual = " + V_to_check);
+            // check of function_J0
+            for (int l = 0; l < levelSize; l++) {
+                int j0 = j0List.get(l);
+                int j1 = j1List.get(l);
+                int J0_to_check = (int) ((double) function_J0.apply(l, j1, j0 % 6));
+                if ((j0 / 6) != J0_to_check) {
+                    System.out.print("test failed: expected = " + (j0 / 6) + ", actual = " + J0_to_check);
                     break;
                 }
             }
         }
         {
             List<Integer> indexesInSpaceOfDefinition = new ArrayList<>(j0List.size());
-            for (int i = 0; i < j0List.size(); i++) {
-                int ii = i;
+            for (int l = 0; l < levelSize; l++) {
+                int final_l = l;
                 List<Integer> spaceOfDefinition = getSpaceOfDefinition(
-                        l -> function_V.apply(ii, l, j0List.get(ii) % 6),
+                        j1 -> function_J0.apply(final_l, j1, j0List.get(final_l) % 6),
                         j1Max);
-                Integer l = j1List.get(i);
-//            System.out.println(spaceOfDefinition + " l(i) = " + l);
-                indexesInSpaceOfDefinition.add(spaceOfDefinition.indexOf(l));
+                Integer j1 = j1List.get(l);
+                indexesInSpaceOfDefinition.add(spaceOfDefinition.indexOf(j1));
             }
             System.out.println(indexesInSpaceOfDefinition);
         }
-
         {
-            List<Integer> another_l = new ArrayList<>(j0List.size());
-            for (int i = 0; i < j0List.size(); i++) {
-                int _i = i;
+            List<Integer> another_j1 = new ArrayList<>(j0List.size());
+            for (int l = 0; l < levelSize; l++) {
+                int final_l = l;
                 int min = j1Max;
-                for (int vMod6 = 0; vMod6 < 6; vMod6++) {
-                    int _vMod6 = vMod6;
+                for (int j0Mod6 = 0; j0Mod6 < 6; j0Mod6++) {
+                    int _j0Mod6 = j0Mod6;
                     List<Integer> spaceOfDefinition = getSpaceOfDefinition(
-                            l -> function_V.apply(_i, l, _vMod6),
+                            j1 -> function_J0.apply(final_l, j1, _j0Mod6),
                             min);
                     if (!spaceOfDefinition.isEmpty()) {
                         Integer candidate = spaceOfDefinition.get(0);
@@ -250,38 +259,36 @@ public class SortSecondLevel {
                         }
                     }
                 }
-                another_l.add(min);
+                another_j1.add(min);
             }
             System.out.println(j1List);
-            System.out.println(another_l);
+            System.out.println(another_j1);
         }
-
         {
-            int i = 100; // vmod6(i=100) = 1
-            int wrong_vmod6 = 5;
+            int l = 100; // j0(l=100) % 6 = 1
+            int wrong_j0mod6 = 5;
             List<Integer> spaceOfDefinition = getSpaceOfDefinition(
-                    l -> function_V.apply(i, l, wrong_vmod6),
+                    j1 -> function_J0.apply(l, j1, wrong_j0mod6),
                     1000);
             System.out.println(spaceOfDefinition);
-            spaceOfDefinition.forEach(l -> System.out.println(6 * function_V.apply(i, l, wrong_vmod6) + wrong_vmod6));
+            spaceOfDefinition.forEach(j1 -> System.out.println(6 * function_J0.apply(l, j1, wrong_j0mod6) + wrong_j0mod6));
         }
-
         {
-            List<Integer> another_l = new ArrayList<>(j0List.size());
-            for (int i = 0; i < j0List.size(); i++) {
-                int _i = i;
-                int right_l = -1;
-                for (int vMod6 = 0; vMod6 < 6; vMod6++) {
-                    int _vMod6 = vMod6;
+            List<Integer> another_j1 = new ArrayList<>(j0List.size());
+            for (int l = 0; l < levelSize; l++) {
+                int final_l = l;
+                int right_j1 = -1;
+                for (int j0Mod6 = 0; j0Mod6 < 6; j0Mod6++) {
+                    int final_j0Mod6 = j0Mod6;
                     List<Integer> spaceOfDefinition = getSpaceOfDefinition(
-                            l -> function_V.apply(_i, l, _vMod6),
+                            j1 -> function_J0.apply(final_l, j1, final_j0Mod6),
                             1000);
                     if (!spaceOfDefinition.isEmpty()) {
-                        for (Integer l : spaceOfDefinition) {
-                            double v = 6 * function_V.apply(_i, l, _vMod6).intValue() + _vMod6;
+                        for (Integer j1 : spaceOfDefinition) {
+                            double v = 6 * function_J0.apply(final_l, j1, final_j0Mod6).intValue() + final_j0Mod6;
                             if (v >= 0) {
-                                if (right_l == -1) {
-                                    right_l = l;
+                                if (right_j1 == -1) {
+                                    right_j1 = j1;
                                 } else {
                                     System.out.println("it's not work");
                                 }
@@ -289,153 +296,52 @@ public class SortSecondLevel {
                         }
                     }
                 }
-                another_l.add(right_l);
+                another_j1.add(right_j1);
             }
             System.out.println(j1List);
-            System.out.println(another_l);
+            System.out.println(another_j1);
         }
-
-
-        List<Integer> vmod6 = j0List.stream().map(x -> x % 6).collect(toList());
-        System.out.println("v(i) % 6 = " + vmod6);
-        System.out.println("A[l, v] % 6 = " + Arrays.deepToString(apply(A, a -> a % 6)));
-        System.out.println("B[l, v] % 6 = " + Arrays.deepToString(apply(B, b -> b % 6)));
-        System.out.println("C[l, v] % 6 = " + Arrays.deepToString(apply(C, c -> c % 6)));
-
-        int[][] O = new int[6][6];
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 6; j++) {
-                O[i][j] = i * 6 + j;
-            }
-        }
-        List<Integer> lmod6 = j1List.stream().map(x -> x % 6).collect(toList());
-        List<Integer> Olv = IntStream.range(0, j0List.size())
-                .mapToObj(i -> O[lmod6.get(i)][vmod6.get(i)])
-                .collect(toList());
-        System.out.println("O(l,v) = " + Olv);
-
         {
-            List<Integer> iSubstituteA = IntStream.range(0, j0List.size())
-                    .map(i -> i - A[j1List.get(i) % 6][j0List.get(i) % 6])
+            List<Integer> lSubstituteA = IntStream.range(0, levelSize)
+                    .map(l -> l - A[j1List.get(l) % 6][j0List.get(l) % 6])
                     .boxed()
                     .collect(toList());
-            System.out.println("i - A(l(i), v(i)) = " + iSubstituteA); // all values more or equal zero
+            System.out.println("l - A(j1(l), j0(l)) = " + lSubstituteA); // all values more or equal zero
         }
-
         {
             System.out.println("(x * x) % 18 = " + IntStream.range(0, 18)
                     .map(x -> (x * x) % 18)
                     .boxed()
                     .collect(toList()));
         }
-
         {
-            List<Double> L1 = IntStream.range(0, j0List.size())
-                    .mapToDouble(i -> {
-                        int l = j1List.get(i) % 6;
-                        int v = j0List.get(i) % 6;
-                        int d = B[l][v] - 18;
-                        int a = A[l][v];
-                        return ((-(d - 2) + Math.sqrt((d - 2) * (d - 2) + 2 * 36 * (i - a))) / 36);
+            List<Double> J1_1_List = IntStream.range(0, levelSize)
+                    .mapToDouble(l -> {
+                        int j0 = j0List.get(l) % 6;
+                        int j1 = j1List.get(l) % 6;
+                        int d = B[j1][j0] - 18;
+                        int a = A[j1][j0];
+                        return ((-(d - 2) + Math.sqrt((d - 2) * (d - 2) + 2 * 36 * (l - a))) / 36);
                     })
                     .boxed()
                     .collect(toList());
-            List<Integer> L = IntStream.range(0, j0List.size())
-                    .map(i -> j1List.get(i) / 6)
+            List<Integer> J1List = IntStream.range(0, levelSize)
+                    .map(l -> j1List.get(l) / 6)
                     .boxed()
                     .collect(toList());
-            IntStream.range(0, j0List.size())
-                    .forEach(i -> {
-                        Integer l = L.get(i);
-                        Double l1 = L1.get(i);
-                        if (l > l1) {
-                            System.out.println("i = " + i + ", L = " + l + ", L1 = " + l1);
+            IntStream.range(0, levelSize)
+                    .forEach(l -> {
+                        Integer J1 = J1List.get(l);
+                        Double J1_1 = J1_1_List.get(l);
+                        if (J1 > J1_1) {
+                            System.out.println("limit doesn't work: l = " + l + ", J1 = " + J1 + ", J1_1 = " + J1_1);
                         }
                     });
-            /*
-                We got the limit formula L1 took from one piece of space of definition.
-             */
         }
         {
             int[][] D = apply(B, b -> b - 18);
             int[][] G = apply(D, d -> d % 36);
             System.out.println("(G ^ 2 - T) / 72 = " + Arrays.deepToString(apply(G, T, (g, t) -> ((g * g - t) / 72))));
-        }
-        {
-//            List<Item> thirdLevel = calculateLevel(3, limit);
-//            println("thirdLevel", thirdLevel.stream().map(Item::getValue).collect(toList()));
-//
-//            List<Integer> firstIndexes = toIndexList(thirdLevel);
-//            println("first indexes" + firstIndexes);
-//
-//            List<Integer> secondIndexes = thirdLevel.stream()
-//                    .map(Item::getSecondIndex)
-//                    .collect(toList());
-//            println("second indexes" + secondIndexes);
-//
-//            List<Integer> secondSortedIndexes = thirdLevel.stream()
-//                    .map(it -> it.getSortedIndex(0))
-//                    .collect(toList());
-//            println("sorted indexes from second level" + secondSortedIndexes);
-//
-//            List<Integer> thirdIndexes = thirdLevel.stream()
-//                    .map(it -> it.getIndex(2))
-//                    .collect(toList());
-//            println("third indexes" + thirdIndexes);
-//
-//            Map<Integer, List<Integer>> groupOfSecondSortedIndexes = groupByValues(secondSortedIndexes);
-//            println("Group of secondSortedIndexes:" + groupOfSecondSortedIndexes);
-//            FunctionAnalyzer analyzer = new FunctionAnalyzer();
-//
-//            for (int v = 0; v < 10; v++) {
-//                println("T = 18, v = " + v + ", " + analyzer.analyze(groupOfSecondSortedIndexes.get(v), 18));
-//            }
-//
-//            Map<Integer, List<Integer>> groupOfThirdIndexes = groupByValues(thirdIndexes);
-//            println(analyzer.analyze(groupOfThirdIndexes.get(0), 18)); // doesn't work :(
-//
-//            {
-//                List<Item> grouped = thirdLevel.stream()
-//                        .sorted((it1, it2) -> {
-//                            int compareFirstIndex = Integer.compare(it1.getFirstIndex(), it2.getFirstIndex());
-//                            if (compareFirstIndex == 0) {
-//                                int compareSecondIndex = Integer.compare(it1.getSecondIndex(), it2.getSecondIndex());
-//                                if (compareSecondIndex == 0) {
-//                                    return Integer.compare(it1.getIndex(2), it2.getIndex(2));
-//                                }
-//                                return compareSecondIndex;
-//                            }
-//                            return compareFirstIndex;
-//                        })
-//                        .collect(toList());
-//                println(grouped.stream().map(Item::getFirstIndex).collect(toList()));
-//                println(grouped.stream().map(Item::getSecondIndex).collect(toList()));
-//                println(grouped.stream().map(it -> it.getIndex(2)).collect(toList()));
-//                println(grouped.stream().map(it -> it.getSortedIndex(1)).collect(toList()));
-//            }
-
-//            {
-//                List<Integer> data = groupOfFirstIndexes.get(0);
-//                for (int T = 1000; T <= 1128; T++) {
-//                    List<Function> functions = analyzer.analyze(data, T);
-//                    println("first index, value = " + T + ": " + functions);
-//                }
-//                /*
-//                нужно исправить чтобы было не три индекса, а глобальный индекс от мержа второго уровня и третий индекс
-//                    третий индекс остается тритм инексом и его повдение все же непредсказуемо. заметен медленный рост, но ничего точного сказать не получается
-//                 */
-//            }
-
-//            functionsByValues = new ArrayList<>();
-//            for (int v = 0; v < groupOfFirstIndexes.size(); v++) {
-//                List<Integer> data = groupOfFirstIndexes.get(v);
-//                if (data.size() < 18) {
-//                    continue;
-//                }
-//                List<Function> functions = analyzer.analyze(data, 18);
-//                functionsByValues.add(functions);
-//                println("first index, value = " + v + ": " + functions);
-//            }
         }
     }
 
@@ -443,20 +349,6 @@ public class SortSecondLevel {
         return data.stream()
                 .map(item -> item.getIndex(index))
                 .collect(toList());
-    }
-
-    private List<Item> sortByValues(List<Item> level) {
-        return level.stream()
-                .sorted(Comparator.comparing(Item::getValue))
-                .collect(toList());
-    }
-
-    private void testGetSpaceOfDefinition() {
-        System.out.println(getSpaceOfDefinition(x -> (double) x, 100));
-        System.out.println(getSpaceOfDefinition(x -> (double) 2 * x, 100));
-        System.out.println(getSpaceOfDefinition(x -> (double) x / 2, 100));
-        System.out.println(getSpaceOfDefinition(Math::sqrt, 100));
-
     }
 
     private List<Integer> getSpaceOfDefinition(IntFunction<Double> function, int lastValue) {
@@ -494,23 +386,12 @@ public class SortSecondLevel {
         return z;
     }
 
-    private double[][] applyDouble(int[][] x, IntFunction<Double> operator) {
-        double[][] z = new double[x.length][x[0].length];
-        for (int i = 0; i < x.length; i++) {
-            for (int j = 0; j < x[0].length; j++) {
-                z[i][j] = operator.apply(x[i][j]);
-            }
-        }
-        return z;
-    }
-
-    private List<Integer> getCoefficients(int t, int c) {
+    private List<Integer> getCoefficients(int j1Mod6, int coefficientIndex) {
         return lByj1Functions.stream()
-                .map(f -> {
-                    Value value = f.get(t).getCoefficient(c).getAs();
+                .map(lByj1 -> {
+                    Value value = lByj1.get(j1Mod6).getCoefficient(coefficientIndex).getAs();
                     return value.getValue();
-                })
-                .collect(toList());
+                }).collect(toList());
     }
 
     private List<Item> branch(Item parent, BigInteger limit) {
@@ -560,20 +441,6 @@ public class SortSecondLevel {
         System.out.println(object.toString());
     }
 
-    private void println(String prefix, List<?> list) {
-        StringBuilder text = new StringBuilder(prefix + ": ");
-        if (list.size() < 100) {
-            text = text.append(list);
-        } else {
-            text = text.append("[");
-            for (int i = 0; i < 100; i++) {
-                text = text.append(list.get(i) + ", ");
-            }
-        }
-        System.out.println(text);
-    }
-
-
     private BigInteger C(BigInteger P, int j) {
         return P.multiply(powOf2(i(P, j))).subtract(ONE)
                 .divide(THREE);
@@ -581,16 +448,5 @@ public class SortSecondLevel {
 
     private int i(BigInteger P, int j) {
         return 3 * j + cycle(j, R(P), I);
-    }
-
-    private List<Integer> countValues(List<Integer> data) {
-        List<Integer> counts = new ArrayList<>(data.size());
-        Map<Integer, Integer> valueToCount = new HashMap<>();
-        for (Integer value : data) {
-            Integer currentCount = valueToCount.getOrDefault(value, 0);
-            counts.add(currentCount);
-            valueToCount.put(value, currentCount + 1);
-        }
-        return counts;
     }
 }
