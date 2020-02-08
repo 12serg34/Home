@@ -1,8 +1,9 @@
 package com.home.hailstone.expirement;
 
 import com.home.hailstone.Item;
-import com.home.hailstone.math.Function;
 import com.home.hailstone.math.FunctionAnalyzer;
+import com.home.hailstone.math.PalindromeFunction;
+import com.home.hailstone.math.Value;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.BigIntegerUtil.*;
+import static com.home.hailstone.math.Util.merge;
 import static java.math.BigInteger.ONE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -104,6 +106,9 @@ import static java.util.stream.Collectors.toList;
             appropriate value in terms of space of definition. It takes hope that v function could be found analytically
             in more or less simple form.
          */
+        /*
+            l - level index. It's an index of value where it has place in some level.
+         */
 
 public class SortSecondLevel {
 
@@ -112,7 +117,7 @@ public class SortSecondLevel {
             {1, 2, 3, 0, 3, 2}
     };
 
-    private List<List<Function>> levelIndexesFromj1;
+    private List<List<PalindromeFunction>> lByj1Functions;
 
     public static void main(String[] args) {
         new SortSecondLevel().run();
@@ -131,30 +136,32 @@ public class SortSecondLevel {
                         .setLevelIndex(levelIndex));
 
         List<Integer> j0List = toIndexList(secondLevel, 0);
-        println("j0: " + j0List);
         List<Integer> j1List = toIndexList(secondLevel, 1);
+
+        println("l: " + secondLevel.stream().map(Item::getLevelIndex).collect(toList()));
+        println("j0: " + j0List);
         println("j1: " + j1List);
         println("second level: " + secondLevel.stream().map(Item::getValue).limit(100).collect(toList()));
 
-        Map<List<Integer>, Item> jToLevelIndex = new HashMap<>();
-        secondLevel.forEach(item -> jToLevelIndex.put(item.getIndexes(), item));
+        Map<List<Integer>, Item> jToItem = new HashMap<>();
+        secondLevel.forEach(item -> jToItem.put(item.getIndexes(), item));
+
         FunctionAnalyzer analyzer = new FunctionAnalyzer();
-        @SuppressWarnings("OptionalGetWithoutIsPresent") int j0Max = j0List.stream().max(Integer::compareTo).get();
         @SuppressWarnings("OptionalGetWithoutIsPresent") int j1Max = j1List.stream().max(Integer::compareTo).get();
-        levelIndexesFromj1 = new ArrayList<>();
+        lByj1Functions = new ArrayList<>();
         int period = 6;
         for (int j0 = 0; j0 < period * 4; j0++) {
-            List<Integer> data = new ArrayList<>();
+            List<Integer> lByj1 = new ArrayList<>();
             for (int j1 = 0; j1 <= j1Max; j1++) {
-                Item item = jToLevelIndex.get(asList(j0, j1));
+                Item item = jToItem.get(asList(j0, j1));
                 if (item == null) {
                     break;
                 }
-                data.add(item.getLevelIndex());
+                lByj1.add(item.getLevelIndex());
             }
-            List<Function> functions = analyzer.analyze(data, period);
-            levelIndexesFromj1.add(functions);
-            System.out.printf("level index from j1 at j0 = %1s is: %2s\n", j0, functions);
+            List<PalindromeFunction> palindromeFunctions = analyzer.analyze("j1", lByj1, period);
+            lByj1Functions.add(palindromeFunctions);
+            System.out.printf("j0 = %1s, l(j1) = %2s\n", j0, merge(palindromeFunctions));
         }
 
         int[][] A = new int[6][6];
@@ -162,18 +169,18 @@ public class SortSecondLevel {
         int[][] C = new int[6][6];
         for (int c = 0; c < 2; c++) {
             for (int l = 0; l < 6; l++) {
-                List<Function> functionsOfCoefficients = analyzer.analyze(getCoefficients(l, c), 6);
+                List<PalindromeFunction> functionsOfCoefficients = analyzer.analyze("j0", getCoefficients(l, c), 6);
                 if (c == 0) {
                     for (int v = 0; v < 6; v++) {
-                        A[l][v] = functionsOfCoefficients.get(v).getCoefficient(0);
-                        B[l][v] = functionsOfCoefficients.get(v).getCoefficient(1);
+                        A[l][v] = ((Value) functionsOfCoefficients.get(v).getCoefficient(0).getAs()).getValue();
+                        B[l][v] = ((Value) functionsOfCoefficients.get(v).getCoefficient(1).getAs()).getValue();
                     }
                 } else {
                     for (int v = 0; v < 6; v++) {
-                        C[l][v] = functionsOfCoefficients.get(v).getCoefficient(0);
+                        C[l][v] = ((Value) functionsOfCoefficients.get(v).getCoefficient(0).getAs()).getValue();
                     }
                 }
-                println("coefficients c = " + c + ", l = " + l + ": " + functionsOfCoefficients);
+                println("coefficients c = " + c + ", j1 % 6 = " + l + ": " + merge(functionsOfCoefficients));
             }
         }
         println("A(l, v) = " + Arrays.deepToString(A));
@@ -498,8 +505,11 @@ public class SortSecondLevel {
     }
 
     private List<Integer> getCoefficients(int t, int c) {
-        return levelIndexesFromj1.stream()
-                .map(f -> f.get(t).getCoefficient(c))
+        return lByj1Functions.stream()
+                .map(f -> {
+                    Value value = f.get(t).getCoefficient(c).getAs();
+                    return value.getValue();
+                })
                 .collect(toList());
     }
 
@@ -571,12 +581,6 @@ public class SortSecondLevel {
 
     private int i(BigInteger P, int j) {
         return 3 * j + cycle(j, R(P), I);
-    }
-
-    @SafeVarargs
-    private final int merge(int x, IntFunction<Integer>... functions) {
-        int size = functions.length;
-        return functions[x % size].apply(x / size);
     }
 
     private List<Integer> countValues(List<Integer> data) {

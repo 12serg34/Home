@@ -16,21 +16,21 @@ public class FunctionAnalyzer {
         this.depth = depth;
     }
 
-    private Function analyze(List<Integer> data) {
-        List<Integer> coefficients = new ArrayList<>();
-        coefficients.add(data.get(0));
+    private PalindromeFunction analyze(String variable, List<Integer> data) {
+        List<Value> coefficients = new ArrayList<>();
+        coefficients.add(new Value(data.get(0)));
         int currentDepth = 0;
         while (currentDepth < depth && !checkForConstant(data)) {
             data = Util.diff(data);
-            coefficients.add(data.get(0));
+            coefficients.add(new Value(data.get(0)));
             currentDepth++;
         }
-        return new Function(coefficients);
+        return new PalindromeFunction(new EqualFunction(variable), coefficients);
     }
 
-    public List<Function> analyze(List<Integer> data, int period) {
+    public List<PalindromeFunction> analyze(String variable, List<Integer> data, int period) {
         return Util.split(data, period).stream()
-                .map(this::analyze)
+                .map(list -> analyze(variable, list))
                 .collect(toList());
     }
 
