@@ -17,6 +17,7 @@ import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.BigIntegerUtil.*;
+import static com.home.hailstone.math.Util.getSpaceOfDefinition;
 import static com.home.hailstone.math.Util.merge;
 import static java.math.BigInteger.ONE;
 import static java.util.Arrays.asList;
@@ -210,13 +211,14 @@ public class SortSecondLevel {
         println("l(j0, j1) = " +
                 "A(j1, j0) " +
                 "+ B(j1, j0) * |j0 / 6| " +
-                "+ 36 * S2(|j0 / 6|) " +
-                "+ (C(j1, j0) + 36 * |j0 / 6|) * |j1 / 6| " +
+                "+ 36 * S2(|j0 / 6|)\n" +
+                "+ (C(j1, j0) + 36 * |j0 / 6|) * |j1 / 6|\n" +
                 "+ 36 * S2(|j1 / 6|)");
 
         System.out.println("B - C = " + Arrays.deepToString(apply(B, C, (b, c) -> b - c)));
         int[][] T = apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a);
         System.out.println("B - 18 = " + Arrays.deepToString(apply(B, b -> b - 18)));
+        System.out.println("C - 18 = " + Arrays.deepToString(apply(C, c -> c - 18)));
         System.out.println("T(j1, j0) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
         System.out.println("T / 4 = " + Arrays.deepToString(apply(T, x -> x / 4)));
         System.out.println("(T / 4) mod 3 = " + Arrays.deepToString(apply(T, x -> (x / 4) % 3)));
@@ -359,21 +361,6 @@ public class SortSecondLevel {
         return data.stream()
                 .map(item -> item.getIndex(index))
                 .collect(toList());
-    }
-
-    private List<Integer> getSpaceOfDefinition(IntFunction<Double> function, int lastValue) {
-        List<Integer> result = new ArrayList<>();
-        for (int x = 0; x <= lastValue; x++) {
-            Double d;
-            if (isInteger(function.apply(x))) {
-                result.add(x);
-            }
-        }
-        return result;
-    }
-
-    private boolean isInteger(double value) {
-        return value % 1 == 0;
     }
 
     private int[][] apply(int[][] x, int[][] y, BinaryOperator<Integer> operator) {

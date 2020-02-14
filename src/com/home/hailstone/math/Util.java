@@ -89,4 +89,19 @@ public class Util {
         }
         return new PalindromeFunction(example.getArgument(), coefficients);
     }
+
+    public static List<Integer> getSpaceOfDefinition(IntFunction<Double> function, int lastValue) {
+        List<Integer> result = new ArrayList<>();
+        for (int x = 0; x <= lastValue; x++) {
+            Double d;
+            if (isInteger(function.apply(x))) {
+                result.add(x);
+            }
+        }
+        return result;
+    }
+
+    private static boolean isInteger(double value) {
+        return value % 1 == 0;
+    }
 }
