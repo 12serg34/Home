@@ -14,6 +14,14 @@ public class CycleFunction implements Function {
         cycle.add(function);
     }
 
+    public int getSize() {
+        return cycle.size();
+    }
+
+    public Function getElement(int i) {
+        return cycle.get(i);
+    }
+
     @Override
     public String toString() {
         return cycle.toString();

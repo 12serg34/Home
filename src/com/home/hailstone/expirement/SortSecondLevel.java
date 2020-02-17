@@ -3,6 +3,7 @@ package com.home.hailstone.expirement;
 import com.home.hailstone.Item;
 import com.home.hailstone.math.FunctionAnalyzer;
 import com.home.hailstone.math.PalindromeFunction;
+import com.home.hailstone.math.Util;
 import com.home.hailstone.math.Value;
 
 import java.math.BigInteger;
@@ -20,6 +21,7 @@ import static com.home.hailstone.math.BigIntegerUtil.*;
 import static com.home.hailstone.math.Util.getSpaceOfDefinition;
 import static com.home.hailstone.math.Util.merge;
 import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -217,7 +219,8 @@ public class SortSecondLevel {
 
         System.out.println("B - C = " + Arrays.deepToString(apply(B, C, (b, c) -> b - c)));
         int[][] T = apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a);
-        System.out.println("B - 18 = " + Arrays.deepToString(apply(B, b -> b - 18)));
+        int[][] BMinus18 = apply(B, b -> b - 18);
+        System.out.println("B - 18 = " + Arrays.deepToString(BMinus18));
         System.out.println("C - 18 = " + Arrays.deepToString(apply(C, c -> c - 18)));
         System.out.println("T(j1, j0) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
         System.out.println("T / 4 = " + Arrays.deepToString(apply(T, x -> x / 4)));
@@ -319,6 +322,78 @@ public class SortSecondLevel {
                     .boxed()
                     .collect(toList());
             System.out.println("l - A(j1(l), j0(l)) = " + lSubstituteA); // all values more or equal zero
+        }
+        {
+            List<Integer> restByl = IntStream.range(0, levelSize)
+                    .map(l -> 18 * l + T[j1List.get(l) % 6][j0List.get(l) % 6] / 4)
+                    .distinct()
+                    .boxed()
+                    .collect(toList());
+            System.out.println("distinct of 18*l + T(j1(l), j0(l)) / 4 = " + restByl);
+
+            for (int i = 0; i < 20; i++) {
+                int finalI = i;
+                List<Integer> spaceOfDefinition = Util.getSpaceOfDefinition(
+                        y -> Math.sqrt(36 * y + restByl.get(finalI)),
+                        10000);
+                List<PalindromeFunction> analyze = analyzer.analyze("e", spaceOfDefinition, 2);
+                System.out.printf("y(e) = %1s\n", analyze);
+            }
+        }
+        {
+            List<Integer> data = IntStream.range(0, levelSize)
+                    .map(l -> {
+                        int j1Mod6 = j1List.get(l) % 6;
+                        int j0Mod6 = j0List.get(l) % 6;
+                        int b = (int) Math.sqrt(18 * l + T[j1Mod6][j0Mod6] / 4);
+                        return b - BMinus18[j1Mod6][j0Mod6] / 2;
+                    })
+                    .boxed()
+                    .collect(toList());
+            System.out.println("b - m01 / 2 = " + data);
+        }
+        {
+            // coefficients of p (index of y in fact of j1) from Y and B
+            int[][] k00 = {
+                    {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {1, 8, 7, 2, 5, 4, 3, 2, 1}};
+            int[][] k01 = {{0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    {3, 8, 7, 3, 5, 4, 3, 2, 1}};
+            int[][] k10 = {
+                    {4, 10, 11, 6, 13, 14, 8, 16, 17},
+                    {8, 26, 25, 10, 23, 22, 12, 20, 19}};
+            int[][] k11 = {
+                    {6, 9, 9, 6, 9, 9, 6, 9, 9},
+                    {6, 9, 9, 6, 9, 9, 6, 9, 9}};
+            int[][] k20 = {
+                    {8, 18, 18, 8, 18, 18, 8, 18, 18},
+                    {8, 18, 18, 8, 18, 18, 8, 18, 18}};
+
+            List<Integer> data = IntStream.range(0, levelSize)
+                    .map(l -> {
+                        int j1Mod6 = j1List.get(l) % 6;
+                        int j0Mod6 = j0List.get(l) % 6;
+                        int b = (int) Math.sqrt(18 * l + T[j1Mod6][j0Mod6] / 4);
+                        int t0 = (b - BMinus18[j1Mod6][j0Mod6] / 2 + 18) % 18;
+                        int pBy0 = b % 3 == 0 ? cycle(valueOf(t0 / 6), 0, 2, 1) : (t0 == 0 ? 0 : 1);
+                        if (b % 3 != 0) {
+                            if ((9 * pBy0 + cycle(valueOf(b), 0, 7, 5, 0, 1, -1, 0, -5, -7) * (pBy0 % 2) + t0 + 18) % 18 != 0) {
+                                System.out.println("alarm " + l);
+                            }
+                        }
+                        int P = pBy0 / 2;
+                        int B2 = b / 9;
+                        int pMod2 = pBy0 % 2;
+                        int bMod9 = b % 9;
+                        int J1 = k00[pMod2][bMod9] + k01[pMod2][bMod9] * B2
+                                + k10[pMod2][bMod9] * P + k11[pMod2][bMod9] * B2 * P
+                                + k20[pMod2][bMod9] * ((P - 1) * P / 2);
+//                        return 2 * k11[pMod2][bMod9] * P + 9 * B2 + 2 * k01[pMod2][bMod9] + bMod9;
+                        return J1;
+                    })
+                    .boxed()
+                    .collect(toList());
+            System.out.println("another J1 = " + data);
         }
         {
             System.out.println("(x * x) % 18 = " + IntStream.range(0, 18)
