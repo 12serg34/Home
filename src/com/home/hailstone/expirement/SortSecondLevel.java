@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.function.IntFunction;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.BigIntegerUtil.*;
@@ -221,6 +222,8 @@ public class SortSecondLevel {
         int[][] T = apply(B, A, (b, a) -> (b - 18) * (b - 18) - 72 * a);
         int[][] BMinus18 = apply(B, b -> b - 18);
         System.out.println("B - 18 = " + Arrays.deepToString(BMinus18));
+        System.out.println("has all values twice ((B - 18) / 2) % 18 = "
+                + Arrays.deepToString(apply(BMinus18, x -> (x / 2) % 18)));
         System.out.println("C - 18 = " + Arrays.deepToString(apply(C, c -> c - 18)));
         System.out.println("T(j1, j0) = (B - 18)^2 - 72 * A = " + Arrays.deepToString(T));
         System.out.println("T / 4 = " + Arrays.deepToString(apply(T, x -> x / 4)));
@@ -345,9 +348,12 @@ public class SortSecondLevel {
                     .map(l -> {
                         int j1Mod6 = j1List.get(l) % 6;
                         int j0Mod6 = j0List.get(l) % 6;
-                        int b = (int) Math.sqrt(18 * l + T[j1Mod6][j0Mod6] / 4);
-                        return b - BMinus18[j1Mod6][j0Mod6] / 2;
+                        return (18 * l + T[j1Mod6][j0Mod6] / 4) % 36;
+//                        int b = (int) Math.sqrt();
+//                        return b - BMinus18[j1Mod6][j0Mod6] / 2;
                     })
+                    .distinct()
+                    .sorted()
                     .boxed()
                     .collect(toList());
             System.out.println("b - m01 / 2 = " + data);
@@ -369,37 +375,33 @@ public class SortSecondLevel {
                     {8, 18, 18, 8, 18, 18, 8, 18, 18},
                     {8, 18, 18, 8, 18, 18, 8, 18, 18}};
 
-            List<Integer> data = IntStream.range(0, levelSize)
-                    .map(l -> {
-                        int j1Mod6 = j1List.get(l) % 6;
-                        int j0Mod6 = j0List.get(l) % 6;
-                        int b = (int) Math.sqrt(18 * l + T[j1Mod6][j0Mod6] / 4);
-                        int t0 = (b - BMinus18[j1Mod6][j0Mod6] / 2 + 18) % 18;
-                        int pBy0 = b % 3 == 0 ? cycle(valueOf(t0 / 6), 0, 2, 1) : (t0 == 0 ? 0 : 1);
-                        if (b % 3 != 0) {
-                            if ((9 * pBy0 + cycle(valueOf(b), 0, 7, 5, 0, 1, -1, 0, -5, -7) * (pBy0 % 2) + t0 + 18) % 18 != 0) {
-                                System.out.println("alarm " + l);
-                            }
-                        }
-                        int P = pBy0 / 2;
-                        int B2 = b / 9;
-                        int pMod2 = pBy0 % 2;
-                        int bMod9 = b % 9;
-                        int J1 = k00[pMod2][bMod9] + k01[pMod2][bMod9] * B2
-                                + k10[pMod2][bMod9] * P + k11[pMod2][bMod9] * B2 * P
-                                + k20[pMod2][bMod9] * ((P - 1) * P / 2);
+            IntUnaryOperator J1Function = l -> {
+                int j1Mod6 = j1List.get(l) % 6; // 7
+                int j0Mod6 = j0List.get(l) % 6; // 32
+                int b = (int) Math.sqrt(18 * l + T[j1Mod6][j0Mod6] / 4);
+                int t0 = (b - BMinus18[j1Mod6][j0Mod6] / 2 + 18) % 18;
+                int pBy0 = b % 3 == 0 ? cycle(valueOf(t0 / 6), 0, 2, 1) : (t0 == 0 ? 0 : 1);
+                if (b % 3 != 0) {
+//                    if ((9 * pBy0 + cycle(valueOf(b), 0, 7, 5, 0, 1, -1, 0, -5, -7) * (pBy0 % 2) + t0 + 18) % 18 != 0) {
+//                        System.out.println("alarm " + l);
+//                    }
+                }
+                int P = pBy0 / 2;
+                int B2 = b / 9;
+                int pMod2 = pBy0 % 2;
+                int bMod9 = b % 9;
+                int J1 = k00[pMod2][bMod9] + k01[pMod2][bMod9] * B2
+                        + k10[pMod2][bMod9] * P + k11[pMod2][bMod9] * B2 * P
+                        + k20[pMod2][bMod9] * ((P - 1) * P / 2);
 //                        return 2 * k11[pMod2][bMod9] * P + 9 * B2 + 2 * k01[pMod2][bMod9] + bMod9;
-                        return J1;
-                    })
+                return J1;
+            };
+            System.out.println("J1(823) = " + J1Function.applyAsInt(823));
+            List<Integer> data = IntStream.range(0, levelSize)
+                    .map(J1Function)
                     .boxed()
                     .collect(toList());
             System.out.println("another J1 = " + data);
-        }
-        {
-            System.out.println("(x * x) % 18 = " + IntStream.range(0, 18)
-                    .map(x -> (x * x) % 18)
-                    .boxed()
-                    .collect(toList()));
         }
         {
             List<Double> J1_1_List = IntStream.range(0, levelSize)

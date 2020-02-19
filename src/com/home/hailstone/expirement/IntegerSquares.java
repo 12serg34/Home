@@ -1,177 +1,117 @@
 package com.home.hailstone.expirement;
 
-import com.home.hailstone.math.CycleFunction;
-import com.home.hailstone.math.FunctionAnalyzer;
-import com.home.hailstone.math.PalindromeFunction;
-import com.home.hailstone.math.Util;
-import com.home.hailstone.math.Value;
-
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntFunction;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static java.util.Collections.max;
+import static java.util.stream.Collectors.toList;
+
+/*
+        Let's index a statement sqrt(36*x + k0) = k1
+     */
+@SuppressWarnings("SameParameterValue")
 public class IntegerSquares {
+    private static final int[] k0Mod36 = new int[]{0, 1, 4, 9, 13, 16, 25, 28};
+    private static final Map<Integer, Integer> k0Mod36Tok3Mod8 = new HashMap<>(8);
+    private static final List<List<Integer>> k7 = new ArrayList<>(8);
+    private static final List<List<Integer>> k11 = new ArrayList<>(18);
+    private static final List<List<Integer>> k5 = new ArrayList<>(8);
 
-    /*
-        I can't get a formula for 3x+2. Also, 3x+1 was very strange and unvalaible for analyzing. I just simply would
-        use my particular coefficients
-     */
-    /*
-        [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0]*S0(b),
-            [1, 8, 7, 2, 5, 4, 3, 2, 1]*S0(b) + [3, 8, 7, 3, 5, 4, 3, 2, 1]*S1(b),
+    static {
+        init();
+    }
 
-            [4, 10, 11, 6, 13, 14, 8, 16, 17]*S0(b) + [6, 9, 9, 6, 9, 9, 6, 9, 9]*S1(b),
-            [8, 26, 25, 10, 23, 22, 12, 20, 19]*S0(b) + [6, 9, 9, 6, 9, 9, 6, 9, 9]*S1(b),
+    private static void init() {
+        List<Integer> k4Cycle = new ArrayList<>(8);
+        List<List<Integer>> k5Mod18 = new ArrayList<>(8);
+        List<List<Integer>> k8Cycle = new ArrayList<>(8);
+        for (int k3 = 0; k3 < 8; k3++) {
+            int k0 = k0Mod36[k3];
+            List<Integer> k5Row = getZeroOfCycle(k1 -> k1 * k1 - k0, 36);
+            ArrayList<Integer> k8 = getFirstMoreOrEqualCycle(k5Row, 36);
+            ArrayList<Integer> k7Row = getMoreThenMaxCycle(k5Row, 36);
+            int k4 = k5Row.size();
+            k4Cycle.add(k4);
+            k5.add(k5Row);
+            k5Mod18.add(k5Row.stream().map(x -> x % 18).collect(toList()));
+            k7.add(k7Row);
+            k8Cycle.add(k8);
+        }
 
-            [8, 18, 18, 8, 18, 18, 8, 18, 18]*S0(b),
-            [8, 18, 18, 8, 18, 18, 8, 18, 18]*S0(b)
-        ]
-     */
+        for (int i = 0; i < 18; i++) {
+            k11.add(new ArrayList<>(2));
+        }
+        for (int k3 = 0; k3 < 8; k3++) {
+            for (int k2 = 0; k2 < k4Cycle.get(k3); k2++) {
+                k11.get(k5Mod18.get(k3).get(k2)).add(k2);
+            }
+        }
 
-    private FunctionAnalyzer analyzer;
-    private int limit;
+        for (int k3Mod8 = 0; k3Mod8 < 8; k3Mod8++) {
+            k0Mod36Tok3Mod8.put(k0Mod36[k3Mod8], k3Mod8);
+        }
+    }
 
     public static void main(String[] args) {
-        new IntegerSquares().run();
+        Calculator calculator = new Calculator();
+        System.out.println(calculator.k1(445, 7, 1));
+
+//        int k3 = 100;
+//        int k3Mod8 = k3 % 8;
+//        int k9 = 0;
+//        int k0 = 36 * (k3 / 8) + k0Mod36[k3Mod8];
+//        System.out.println("k0 = " + k0);
+//        int k6 = ceilSqrt(k0);
+//        int k6Mod36 = k6 % 36;
+//        int k4 = k4Cycle.get(k3Mod8);
+//        int k2 = k4 * ((k9 / k4) + (k6 / 36) + k7.get(k3Mod8).get(k6Mod36))
+//                + (k9 + k8Cycle.get(k3Mod8).get(k6Mod36)) % k4;
+//        int k1 = 36 * (k2 / k4) +
+//                System.out.println("k1(100) = " + k1);
+//        double x = (k1 * k1 - k0) / 36.0;
+//        System.out.println("x = " + x);
     }
 
-    @SuppressWarnings("Convert2MethodRef")
-    private void run() {
-        System.out.println("Let's find integer squares for line functions a*x + b");
-        limit = 10000;
-        analyzer = new FunctionAnalyzer();
-
-        List<PalindromeFunction> palindromeFunctions = new ArrayList<>();
-        {
-            for (int b = 0; b < 40; b++) {
-                System.out.print(b + " ");
-                palindromeFunctions.add(analyze(36, b * b, 2));
-//                int finalI = b;
-//                System.out.println(Arrays.toString(IntStream.range(0, 100)
-//                        .map(y -> f1(y, finalI))
-//                        .toArray()));
-//                System.out.println();
-            }
-            System.out.println(analyze(palindromeFunctions, 9));
-        }
-        {
-            int[][] m = new int[36][36];
-            for (int i = 0; i < 36; i++) {
-                for (int j = 0; j < 36; j++) {
-                    int v = i * i - j * j;
-                    m[i][j] = (v + 36) % 36 == 0 ? 0 : 1;
-                }
-            }
-            System.out.println(Arrays.deepToString(m));
-        }
-        {
-            System.out.println("cycles");
-            for (int b = 0; b < 18; b++) {
-                System.out.println(getZeroOfCycle(6, b, 18));
-            }
-        }
-        {
-            System.out.println("another cycles");
-            for (int k0 = 1; k0 < 18; k0++) {
-                int finalK0 = k0;
-                for (int k1 = 0; k1 < 18; k1++) {
-                    int finalK1 = k1;
-                    List<Integer> zeroOfCycle2 = getZeroOfCycle2(x -> 9 * x + finalK0 * (x % 2) + finalK1, 18);
-                    if (!zeroOfCycle2.isEmpty()) {
-                        System.out.printf("k0 = %1d, k1 = %2d, zeros at %3s\n", k0, k1, zeroOfCycle2);
-                    }
-                }
-            }
-        }
+    private static void printTwoDimensionCycle(List<List<Integer>> cycle) {
+        cycle.forEach(inner -> System.out.printf("%1s,\n", inner));
     }
 
-    private PalindromeFunction analyze(int a, int b, int period) {
-        List<Integer> spaceOfDefinition = Util.getSpaceOfDefinition(x -> Math.sqrt(a * x + b), limit);
-//        System.out.printf("SoD of %1d*x+%2d: %3s\n", a, b, spaceOfDefinition);
-        PalindromeFunction analyze = Util.merge(analyzer.analyze("y", spaceOfDefinition, period));
-        System.out.printf("x(y) = %1s\n", analyze);
-        return analyze;
-    }
-
-    private List<PalindromeFunction> analyze(List<PalindromeFunction> palindromes, int period) {
-        int size = checkAndGetSameSize(palindromes);
-        CycleFunction cycleExample = palindromes.get(0).getCoefficient(0).getAs();
-        int totalSize = size * cycleExample.getSize();
-        List<List<Integer>> coefficients = new ArrayList<>(totalSize);
-        for (int i = 0; i < totalSize; i++) {
-            coefficients.add(new ArrayList<>(palindromes.size()));
-        }
-        for (int i = 0; i < palindromes.size(); i++) {
-            PalindromeFunction function = palindromes.get(i);
-            for (int j = 0; j < size; j++) {
-                CycleFunction coefficient = function.getCoefficient(j).getAs();
-                for (int k = 0; k < coefficient.getSize(); k++) {
-                    Value value = coefficient.getElement(k).getAs();
-                    coefficients.get(j * coefficient.getSize() + k).add(value.getValue());
-                }
-            }
-        }
-        return coefficients.stream()
-                .map(data -> Util.merge(analyzer.analyze("b", data, period)))
-                .collect(Collectors.toList());
-    }
-
-    private int checkAndGetSameSize(List<PalindromeFunction> palindromes) {
-        int size = palindromes.get(0).getSize();
-        for (int i = 1; i < palindromes.size(); i++) {
-            if (palindromes.get(i).getSize() != size) {
-                throw new RuntimeException("you are wrong! function: " + palindromes.get(i) + ", size: " + size);
-            }
-        }
-        return size;
-    }
-
-    /**
-     * Get y-th integer number in SoD of sqrt(x + b)
-     *
-     * @param y index
-     * @param b parameter
-     * @return (y + / sqrt ( b)\) ^ 2 - b
-     */
-    private int f1(int y, int b) {
-        int t = y + ceilSqrt(b);
-        return t * t - b;
-    }
-
-    /**
-     * Get y-th integer number in SoD of sqrt(2*x + b)
-     *
-     * @param y index
-     * @param b parameter
-     * @return (y + / sqrt ( b)\) ^ 2 - b
-     */
-    private int f2(int y, int b) {
-        int t = 2 * y + ceilSqrt(b);
-        return (t * t - b) / 2;
-    }
-
-    private int ceilSqrt(int x) {
-        return (int) Math.ceil(Math.sqrt(x));
-    }
-
-    /**
-     * find x for statement (a*x + b) % 18 = 0
-     */
-    private List<Integer> getZeroOfCycle(int a, int b, int t) {
-        List<Integer> result = new ArrayList<>();
-        for (int x = 0; x < t; x++) {
-            int st = a * x + b;
-            if (st % t == 0) {
-                result.add(x);
-            }
+    private static ArrayList<Integer> getMoreThenMaxCycle(List<Integer> cycle, int period) {
+        int maxValue = max(cycle);
+        ArrayList<Integer> result = new ArrayList<>(period);
+        for (int i = 0; i < period; i++) {
+            result.add(maxValue >= i ? 0 : 1);
         }
         return result;
     }
 
-    private List<Integer> getZeroOfCycle2(IntFunction<Integer> function, int t) {
+    private static ArrayList<Integer> getFirstMoreOrEqualCycle(List<Integer> cycle, int period) {
+        ArrayList<Integer> result = new ArrayList<>(period);
+        for (int i = 0; i < period; i++) {
+            result.add(getFirstMoreOrEqual(cycle, i));
+        }
+        return result;
+    }
+
+    private static int getFirstMoreOrEqual(List<Integer> cycle, int limit) {
+        return IntStream.range(0, cycle.size())
+                .filter(i -> cycle.get(i) >= limit)
+                .findFirst()
+                .orElse(0);
+    }
+
+    private static int ceilSqrt(int x) {
+        return (int) Math.ceil(Math.sqrt(x));
+    }
+
+    /**
+     * find x for statement f(x % t) % t = 0
+     */
+    private static List<Integer> getZeroOfCycle(IntFunction<Integer> function, int t) {
         List<Integer> result = new ArrayList<>();
         for (int x = 0; x < t; x++) {
             int st = function.apply(x);
@@ -180,5 +120,33 @@ public class IntegerSquares {
             }
         }
         return result;
+    }
+
+    public static class Calculator {
+        public int k1(int k0, int k10, int k12) {
+            int k6 = k6(k0);
+            int k3Mod8 = k3Mod8(k0);
+            return 36 * ((k12 / 2) + (k6 / 36) + k7(k3Mod8, k6)) + k5(k3Mod8, k11(k10, k12));
+        }
+
+        public int k6(int k0) {
+            return ceilSqrt(k0);
+        }
+
+        public int k7(int k3Mod8, int k6) {
+            return k7.get(k3Mod8).get(k6 % 36);
+        }
+
+        public int k3Mod8(int k0) {
+            return k0Mod36Tok3Mod8.get(k0 % 36);
+        }
+
+        public int k5(int k3Mod8, int k11) {
+            return k5.get(k3Mod8).get(k11);
+        }
+
+        public int k11(int k10, int k12) {
+            return k11.get(k10).get(k12 % 2);
+        }
     }
 }
