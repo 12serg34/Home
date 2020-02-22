@@ -22,7 +22,6 @@ import static com.home.hailstone.math.BigIntegerUtil.*;
 import static com.home.hailstone.math.Util.getSpaceOfDefinition;
 import static com.home.hailstone.math.Util.merge;
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -365,9 +364,9 @@ public class SortSecondLevel {
                     {1, 8, 7, 2, 5, 4, 3, 2, 1}};
             int[][] k01 = {{0, 0, 0, 0, 0, 0, 0, 0, 0},
                     {3, 8, 7, 3, 5, 4, 3, 2, 1}};
-            int[][] k10 = {
-                    {4, 10, 11, 6, 13, 14, 8, 16, 17},
-                    {8, 26, 25, 10, 23, 22, 12, 20, 19}};
+//            int[][] k10 = {
+//                    {4, 10, 11, 6, 13, 14, 8, 16, 17},
+//                    {8, 26, 25, 10, 23, 22, 12, 20, 19}};
             int[][] k11 = {
                     {6, 9, 9, 6, 9, 9, 6, 9, 9},
                     {6, 9, 9, 6, 9, 9, 6, 9, 9}};
@@ -375,33 +374,73 @@ public class SortSecondLevel {
                     {8, 18, 18, 8, 18, 18, 8, 18, 18},
                     {8, 18, 18, 8, 18, 18, 8, 18, 18}};
 
+            IntegerSquares.Calculator calculator = new IntegerSquares.Calculator();
+
             IntUnaryOperator J1Function = l -> {
                 int j1Mod6 = j1List.get(l) % 6; // 7
                 int j0Mod6 = j0List.get(l) % 6; // 32
-                int b = (int) Math.sqrt(18 * l + T[j1Mod6][j0Mod6] / 4);
-                int t0 = (b - BMinus18[j1Mod6][j0Mod6] / 2 + 18) % 18;
-                int pBy0 = b % 3 == 0 ? cycle(valueOf(t0 / 6), 0, 2, 1) : (t0 == 0 ? 0 : 1);
-                if (b % 3 != 0) {
-//                    if ((9 * pBy0 + cycle(valueOf(b), 0, 7, 5, 0, 1, -1, 0, -5, -7) * (pBy0 % 2) + t0 + 18) % 18 != 0) {
-//                        System.out.println("alarm " + l);
-//                    }
-                }
-                int P = pBy0 / 2;
-                int B2 = b / 9;
-                int pMod2 = pBy0 % 2;
-                int bMod9 = b % 9;
-                int J1 = k00[pMod2][bMod9] + k01[pMod2][bMod9] * B2
-                        + k10[pMod2][bMod9] * P + k11[pMod2][bMod9] * B2 * P
-                        + k20[pMod2][bMod9] * ((P - 1) * P / 2);
+                int k0 = 18 * l + T[j1Mod6][j0Mod6] / 4;
+                int k10 = (BMinus18[j1Mod6][j0Mod6] / 2 + 18) % 18;
+//                int pBy0 = k0 % 3 == 0 ? cycle(valueOf(k10 / 6), 0, 2, 1) : (k10 == 0 ? 0 : 1);
+//                if (k0 % 3 != 0) {
+////                    if ((9 * pBy0 + cycle(valueOf(b), 0, 7, 5, 0, 1, -1, 0, -5, -7) * (pBy0 % 2) + t0 + 18) % 18 != 0) {
+////                        System.out.println("alarm " + l);
+////                    }
+//                }
+//                int P = pBy0 / 2;
+//                int B2 = k0 / 9;
+//                int pMod2 = pBy0 % 2;
+//                int bMod9 = k0 % 9;
+//                int J1 = k00[pMod2][bMod9] + k01[pMod2][bMod9] * B2
+//                        + k10[pMod2][bMod9] * P + k11[pMod2][bMod9] * B2 * P
+//                        + k20[pMod2][bMod9] * ((P - 1) * P / 2);
 //                        return 2 * k11[pMod2][bMod9] * P + 9 * B2 + 2 * k01[pMod2][bMod9] + bMod9;
-                return J1;
+                int k1 = calculator.k1(k0, k10, 0);
+                int j1 = (k1 * k1 - k0) / 36;
+                return j1;
+            };
+            IntUnaryOperator J0Function = l -> {
+                int j1Mod6 = j1List.get(l) % 6; // 7
+                int j0Mod6 = j0List.get(l) % 6; // 32
+                int k0 = 18 * l + T[j1Mod6][j0Mod6] / 4;
+                int k10 = (BMinus18[j1Mod6][j0Mod6] / 2 + 18) % 18;
+//                int pBy0 = k0 % 3 == 0 ? cycle(valueOf(k10 / 6), 0, 2, 1) : (k10 == 0 ? 0 : 1);
+//                if (k0 % 3 != 0) {
+////                    if ((9 * pBy0 + cycle(valueOf(b), 0, 7, 5, 0, 1, -1, 0, -5, -7) * (pBy0 % 2) + t0 + 18) % 18 != 0) {
+////                        System.out.println("alarm " + l);
+////                    }
+//                }
+//                int P = pBy0 / 2;
+//                int B2 = k0 / 9;
+//                int pMod2 = pBy0 % 2;
+//                int bMod9 = k0 % 9;
+//                int J1 = k00[pMod2][bMod9] + k01[pMod2][bMod9] * B2
+//                        + k10[pMod2][bMod9] * P + k11[pMod2][bMod9] * B2 * P
+//                        + k20[pMod2][bMod9] * ((P - 1) * P / 2);
+//                        return 2 * k11[pMod2][bMod9] * P + 9 * B2 + 2 * k01[pMod2][bMod9] + bMod9;
+                int k1 = calculator.k1(k0, k10, 0);
+                int J1 = (k1 * k1 - k0) / 36;
+                int J0 = (k1 - (BMinus18[j1Mod6][j0Mod6] / 2) - 18 * J1) / 18;
+                return J0;
             };
             System.out.println("J1(823) = " + J1Function.applyAsInt(823));
+            System.out.println("real J1(823) = " + (j1List.get(823) / 6));
             List<Integer> data = IntStream.range(0, levelSize)
                     .map(J1Function)
                     .boxed()
                     .collect(toList());
             System.out.println("another J1 = " + data);
+            System.out.println("real J1 =    " + j1List.stream()
+                    .map(j1 -> j1 / 6)
+                    .collect(toList()));
+            List<Integer> J0 = IntStream.range(0, levelSize)
+                    .map(J0Function)
+                    .boxed()
+                    .collect(toList());
+            System.out.println("another J0 = " + J0);
+            System.out.println("real J0 =    " + j0List.stream()
+                    .map(j0 -> j0 / 6)
+                    .collect(toList()));
         }
         {
             List<Double> J1_1_List = IntStream.range(0, levelSize)
