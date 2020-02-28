@@ -9,13 +9,16 @@ import com.home.hailstone.math.Value;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.home.hailstone.math.BigIntegerUtil.*;
@@ -25,6 +28,7 @@ import static java.math.BigInteger.ONE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /*
 нужно найти формулу для ограничения первого уровня:
@@ -140,20 +144,24 @@ public class SortSecondLevel {
     private List<List<PalindromeFunction>> lByj1Functions;
 
     public static void main(String[] args) {
-        new SortSecondLevel().run();
+        SortSecondLevel sortSecondLevel = new SortSecondLevel();
+        switch (args[0]) {
+            case "2":
+                sortSecondLevel.sortSecondLevel();
+                break;
+            case "3":
+                sortSecondLevel.sortThirdLevel();
+                break;
+        }
     }
 
-    private void run() {
+    private void sortSecondLevel() {
         println("It's a second level");
         int limitExponent = 36;
         println("Limit: " + limitExponent);
         BigInteger limit = BigInteger.valueOf(10).pow(limitExponent);
 
         List<Item> secondLevel = calculateLevel(2, limit);
-        secondLevel.sort(Comparator.comparing(Item::getValue));
-        IntStream.range(0, secondLevel.size())
-                .forEach(levelIndex -> secondLevel.get(levelIndex)
-                        .setLevelIndex(levelIndex));
 
         int levelSize = secondLevel.size();
         List<Integer> j0List = toIndexList(secondLevel, 0);
@@ -473,6 +481,103 @@ public class SortSecondLevel {
         }
     }
 
+    public void sortThirdLevel() {
+        println("It's a third level");
+        int limitExponent = 100;
+        println("Limit: " + limitExponent);
+        BigInteger limit = BigInteger.valueOf(10).pow(limitExponent);
+
+        List<Item> thirdLevel = calculateLevel(3, limit);
+        println("thirdLevel", thirdLevel.stream().map(Item::getValue).collect(toList()));
+
+        List<Integer> firstIndexes = toIndexList(thirdLevel, 0);
+        println("first indexes", firstIndexes);
+
+        List<Integer> secondIndexes = toIndexList(thirdLevel, 1);
+        println("second indexes", secondIndexes);
+
+        List<Integer> secondLevelIndexes = thirdLevel.stream()
+                .map(it -> it.getLevelIndex(0))
+                .collect(toList());
+        println("second level indexes", secondLevelIndexes);
+
+        List<Integer> j2List = thirdLevel.stream()
+                .map(it -> it.getIndex(2))
+                .collect(toList());
+        println("third indexes", j2List);
+
+        @SuppressWarnings("OptionalGetWithoutIsPresent") int j2Max = j2List.stream().max(Integer::compareTo).get();
+        FunctionAnalyzer analyzer = new FunctionAnalyzer();
+
+        {
+            List<Item> grouped = thirdLevel.stream()
+                    .sorted((it1, it2) -> {
+                        int compareFirstIndex = Integer.compare(it1.getFirstIndex(), it2.getFirstIndex());
+                        if (compareFirstIndex == 0) {
+                            int compareSecondIndex = Integer.compare(it1.getSecondIndex(), it2.getSecondIndex());
+                            if (compareSecondIndex == 0) {
+                                return Integer.compare(it1.getIndex(2), it2.getIndex(2));
+                            }
+                            return compareSecondIndex;
+                        }
+                        return compareFirstIndex;
+                    })
+                    .collect(toList());
+            println(grouped.stream().map(Item::getFirstIndex).collect(toList()));
+            println(grouped.stream().map(Item::getSecondIndex).collect(toList()));
+            println(grouped.stream().map(it -> it.getIndex(2)).collect(toList()));
+            println(grouped.stream().map(it -> it.getLevelIndex(1)).collect(toList()));
+        }
+        {
+            Map<List<Integer>, Item> jToItem = thirdLevel.stream().collect(toMap(Item::getIndexes, Function.identity()));
+            List<Integer> lByj2 = new ArrayList<>();
+            for (int j2 = 0; j2 <= j2Max; j2++) {
+                Item item = jToItem.get(asList(0, 0, j2));
+                if (item == null) {
+                    break;
+                }
+                lByj2.add(item.getLevelIndex());
+            }
+            List<PalindromeFunction> palindromeFunctions = analyzer.analyze("j2", lByj2, 18);
+            System.out.println(palindromeFunctions);
+        }
+        {
+            Map<List<Integer>, Item> l2Andj2ToItem = thirdLevel.stream().collect(toMap(
+                    item -> asList(item.getLevelIndex(0), item.getIndex(2)),
+                    Function.identity()));
+
+            List<Integer> lByj2 = new ArrayList<>();
+            for (int j2 = 0; j2 <= j2Max; j2++) {
+                Item item = l2Andj2ToItem.get(asList(4, j2));
+                if (item == null) {
+                    break;
+                }
+                lByj2.add(item.getLevelIndex());
+            }
+            println("l(l2, j2) = ", lByj2);
+            List<PalindromeFunction> j2 = analyzer.analyze("j2", lByj2, 18);
+            println("l(l2, j2) = " + j2);
+            {
+                PalindromeFunction function = j2.get(0);
+                int k0 = getCoefficient(function, 0);
+                int k1 = getCoefficient(function, 1);
+                int k2 = getCoefficient(function, 2);
+                int k3 = getCoefficient(function, 3);
+
+                int c0 = k0;
+                int c1 = (2 * k3 - 3 * k2 + 6 * k1) / 6;
+                int c2 = -(k3 - k2) / 2;
+                int c3 = k3 / 6;
+                println("c = " + asList(c0, c1, c2, c3));
+
+            }
+        }
+    }
+
+    private int getCoefficient(PalindromeFunction palindrome, int i) {
+        return ((Value) palindrome.getCoefficient(i).getAs()).getValue();
+    }
+
     private List<Integer> toIndexList(List<Item> data, int index) {
         return data.stream()
                 .map(item -> item.getIndex(index))
@@ -533,7 +638,7 @@ public class SortSecondLevel {
     }
 
     private List<Item> calculateFirstLevel(BigInteger limit) {
-        Item one = new Item(ONE, emptyList());
+        Item one = new Item(ONE, emptyList(), new ArrayList<>());
         return branch(one, limit);
     }
 
@@ -547,11 +652,19 @@ public class SortSecondLevel {
         for (Item parent : parentLevel) {
             childLevel.addAll(branch(parent, limit));
         }
+        childLevel.sort(Comparator.comparing(Item::getValue));
+        for (int i = 0; i < childLevel.size(); i++) {
+            childLevel.get(i).addLevelIndex(i);
+        }
         return childLevel;
     }
 
     private void println(Object object) {
         System.out.println(object.toString());
+    }
+
+    private void println(String prefix, Collection<?> collection) {
+        System.out.println(prefix + ": " + collection.stream().limit(100).collect(Collectors.toList()));
     }
 
     private BigInteger C(BigInteger P, int j) {
