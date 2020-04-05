@@ -539,7 +539,7 @@ public class SortSecondLevel {
                 lByj2.add(item.getLevelIndex());
             }
             List<PalindromeFunction> palindromeFunctions = analyzer.analyze("j2", lByj2, 18);
-            System.out.println(palindromeFunctions);
+            System.out.println("l(0,0,j2) = " + palindromeFunctions);
         }
         {
             Map<List<Integer>, Item> l2Andj2ToItem = thirdLevel.stream().collect(toMap(

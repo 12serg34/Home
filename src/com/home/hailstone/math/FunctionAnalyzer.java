@@ -16,6 +16,12 @@ public class FunctionAnalyzer {
         this.depth = depth;
     }
 
+    public List<PalindromeFunction> analyze(String variable, List<Integer> data, int period) {
+        return Util.split(data, period).stream()
+                .map(list -> analyze(variable, list))
+                .collect(toList());
+    }
+
     private PalindromeFunction analyze(String variable, List<Integer> data) {
         List<Value> coefficients = new ArrayList<>();
         coefficients.add(new Value(data.get(0)));
@@ -26,12 +32,6 @@ public class FunctionAnalyzer {
             currentDepth++;
         }
         return new PalindromeFunction(new EqualFunction(variable), coefficients);
-    }
-
-    public List<PalindromeFunction> analyze(String variable, List<Integer> data, int period) {
-        return Util.split(data, period).stream()
-                .map(list -> analyze(variable, list))
-                .collect(toList());
     }
 
     private static boolean checkForConstant(List<Integer> data) {
